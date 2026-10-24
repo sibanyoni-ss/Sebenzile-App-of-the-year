@@ -10,6 +10,7 @@ const documentRoutes = require('./routes/documents.routes');
 const legalHelpRoutes = require('./routes/legalHelp.routes');
 const billingRoutes = require('./routes/billing.routes');
 const uploadRoutes = require('./routes/uploads.routes');
+const assistantRoutes = require('./routes/assistant.routes');
 
 const app = express();
 
@@ -55,6 +56,7 @@ app.use('/api/v1', documentRoutes); // Allows /api/v1/templates
 app.use('/api/v1/legal-help', legalHelpRoutes);
 app.use('/api/v1/billing', billingRoutes);
 app.use('/api/v1/uploads', uploadRoutes);
+app.use('/api/v1/assistant', assistantRoutes);
 
 // ==============================================================================
 // SERVE PUBLIC FRONTEND CLIENT (Static Assets & HTML Pages)

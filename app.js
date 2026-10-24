@@ -444,6 +444,9 @@ function shell(title, bodyContent) {
         localStorage.removeItem('lawbuddy-token');
         location.href = 'index.html';
     };
+
+    // Initialize Compass In-App AI Help Assistant
+    initCompassAssistant();
 }
 
 function toast(message) {
@@ -452,6 +455,251 @@ function toast(message) {
     t.textContent = message;
     t.classList.add('show');
     setTimeout(() => t.classList.remove('show'), 3500);
+}
+
+// ------------------------------------------------------------------------------
+// COMPASS IN-APP AI HELP ASSISTANT (South African Legal Guide)
+// ------------------------------------------------------------------------------
+let compassChatSession = null;
+
+function initCompassAssistant() {
+    if ($('#compass-drawer')) return;
+
+    const userProfile = profile();
+    const userName = (userProfile && userProfile.name && userProfile.name !== 'Member' && userProfile.name !== 'Guest') ? userProfile.name : '';
+
+    const widgetContainer = document.createElement('div');
+    widgetContainer.id = 'compass-widget-root';
+    widgetContainer.innerHTML = `
+        <button id="compass-fab" class="compass-fab" aria-label="Open Compass Legal Guide" title="Ask Compass (LawCompass AI Guide)">
+            <svg class="compass-fab-svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="10"></circle>
+                <polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76" fill="#c98d31"></polygon>
+            </svg>
+            <span>Ask Compass</span>
+            <span class="compass-fab-pulse"></span>
+        </button>
+
+        <div id="compass-drawer" class="compass-drawer" role="dialog" aria-label="Compass AI Legal Assistant" aria-hidden="true">
+            <div class="compass-header">
+                <div class="compass-title-area">
+                    <div class="compass-avatar">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <circle cx="12" cy="12" r="10"></circle>
+                            <polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76" fill="#c98d31"></polygon>
+                        </svg>
+                    </div>
+                    <div>
+                        <h3 class="compass-name">Compass</h3>
+                        <div class="compass-status">
+                            <span class="compass-status-dot"></span>
+                            <span>LawCompass In-App Help</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="compass-header-actions">
+                    <span class="compass-engine-badge" id="compass-engine-badge">Gemini AI</span>
+                    <button class="compass-close-btn" id="compass-close-btn" aria-label="Close Compass">✕</button>
+                </div>
+            </div>
+            <div class="compass-notice-bar">
+                <span>South African Legal Information Only</span>
+                <span>POPIA Protected</span>
+            </div>
+            <div class="compass-body" id="compass-chat-body">
+                <div class="compass-msg compass-msg-assistant">
+                    Hello${userName ? `, <strong>${esc(userName)}</strong>` : ''}! I am <strong>Compass</strong>, the in-app help assistant for LawCompass. I help you use the app, understand our South African legal documents, and explain clauses in plain English.<br><br>
+                    How can I assist you in your workspace today?
+                    <div class="compass-chips-container">
+                        <button class="compass-chip" data-prompt="How do I create an employment contract?">Employment Contract</button>
+                        <button class="compass-chip" data-prompt="Can I make an electronic will on my phone?">Electronic Will Validity</button>
+                        <button class="compass-chip" data-prompt="How does cryptographic document locking work?">Document Locking</button>
+                        <button class="compass-chip" data-prompt="How do I find a verified attorney near me?">Find Attorneys</button>
+                        <button class="compass-chip" data-prompt="How does the plain-language explainer work?">Plain-Language Explainer</button>
+                    </div>
+                </div>
+            </div>
+            <div class="compass-input-area">
+                <div id="compass-popia-warning" class="compass-popia-warning">
+                    POPIA Notice: Never share full ID numbers, bank details, or passwords in chat.
+                </div>
+                <form id="compass-form" class="compass-form">
+                    <input 
+                        type="text" 
+                        id="compass-input" 
+                        class="compass-input" 
+                        placeholder="Ask Compass about templates, clauses, or features..." 
+                        autocomplete="off"
+                        maxlength="600"
+                    />
+                    <button type="submit" class="compass-send-btn" id="compass-send-btn" aria-label="Send Message">➤</button>
+                </form>
+                <div class="compass-disclaimer">
+                    General legal information only · Wills require 2 in-person witnesses · Never legal advice
+                </div>
+            </div>
+        </div>
+    `;
+
+    document.body.appendChild(widgetContainer);
+
+    const fab = $('#compass-fab');
+    const drawer = $('#compass-drawer');
+    const closeBtn = $('#compass-close-btn');
+    const form = $('#compass-form');
+    const input = $('#compass-input');
+    const chatBody = $('#compass-chat-body');
+    const engineBadge = $('#compass-engine-badge');
+
+    if (!compassChatSession) {
+        try {
+            const saved = sessionStorage.getItem('lawcompass-assistant-history');
+            compassChatSession = saved ? JSON.parse(saved) : [];
+        } catch(e) {
+            compassChatSession = [];
+        }
+    }
+
+    const toggleDrawer = (open) => {
+        const isOpen = open !== undefined ? open : !drawer.classList.contains('open');
+        drawer.classList.toggle('open', isOpen);
+        drawer.setAttribute('aria-hidden', String(!isOpen));
+        if (isOpen) {
+            input.focus();
+            chatBody.scrollTop = chatBody.scrollHeight;
+        }
+    };
+
+    fab.onclick = () => toggleDrawer();
+    closeBtn.onclick = () => toggleDrawer(false);
+
+    const formatMessageText = (raw) => {
+        let text = esc(raw);
+        text = text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+        text = text.replace(/\n/g, '<br>');
+
+        let actionLinks = '';
+        if (/Generate Document|Employment Contract|Residential Lease|Non-Disclosure Agreement|Last Will/i.test(raw)) {
+            actionLinks += '<a class="compass-action-link" href="documents.html">Generate Document →</a>';
+        }
+        if (/Legal Help Finder|Find Legal Help|attorney|law firm/i.test(raw)) {
+            actionLinks += '<a class="compass-action-link" href="legal-help.html">Find Legal Help →</a>';
+        }
+        if (/Document History|Encrypted Private Vault|Lock & Finalize/i.test(raw)) {
+            actionLinks += '<a class="compass-action-link" href="history.html">Document History →</a>';
+        }
+        if (/Plain-Language|Explain Text|Upload Contract/i.test(raw)) {
+            actionLinks += '<a class="compass-action-link" href="translate.html">Plain-Language Helper →</a>';
+        }
+        if (/Legal Dictionary/i.test(raw)) {
+            actionLinks += '<a class="compass-action-link" href="dictionary.html">Legal Dictionary →</a>';
+        }
+
+        if (actionLinks) {
+            text += `<div class="compass-action-links">${actionLinks}</div>`;
+        }
+        return text;
+    };
+
+    const appendUserMessage = (msg) => {
+        const bubble = document.createElement('div');
+        bubble.className = 'compass-msg compass-msg-user';
+        bubble.textContent = msg;
+        chatBody.appendChild(bubble);
+        chatBody.scrollTop = chatBody.scrollHeight;
+    };
+
+    const appendAssistantMessage = (replyHtml) => {
+        const bubble = document.createElement('div');
+        bubble.className = 'compass-msg compass-msg-assistant';
+        bubble.innerHTML = replyHtml;
+        chatBody.appendChild(bubble);
+        chatBody.scrollTop = chatBody.scrollHeight;
+    };
+
+    const showTypingIndicator = () => {
+        const ind = document.createElement('div');
+        ind.id = 'compass-typing-indicator';
+        ind.className = 'compass-typing';
+        ind.innerHTML = `
+            <div class="compass-typing-dot"></div>
+            <div class="compass-typing-dot"></div>
+            <div class="compass-typing-dot"></div>
+            <span>Compass is thinking...</span>
+        `;
+        chatBody.appendChild(ind);
+        chatBody.scrollTop = chatBody.scrollHeight;
+        return ind;
+    };
+
+    const handleSendMessage = async (userText) => {
+        if (!userText || !userText.trim()) return;
+        const text = userText.trim();
+        input.value = '';
+
+        if (/\b[0-9]{13}\b/.test(text) || /\b(card number|cvv|pin|password|bank details)\b/i.test(text)) {
+            const popia = $('#compass-popia-warning');
+            if (popia) {
+                popia.style.display = 'block';
+                setTimeout(() => { popia.style.display = 'none'; }, 4500);
+            }
+        }
+
+        appendUserMessage(text);
+        compassChatSession.push({ role: 'user', content: text });
+
+        const typingInd = showTypingIndicator();
+
+        try {
+            const currentToken = localStorage.getItem('lawcompass-token') || localStorage.getItem('lawbuddy-token') || '';
+            const res = await fetch('/api/v1/assistant/chat', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': currentToken ? `Bearer ${currentToken}` : ''
+                },
+                body: JSON.stringify({
+                    message: text,
+                    history: compassChatSession.slice(-6),
+                    user: userProfile
+                })
+            });
+
+            if (typingInd) typingInd.remove();
+
+            if (!res.ok) {
+                const errData = await res.json().catch(() => ({}));
+                throw new Error(errData.error?.message || 'Compass service is momentarily busy.');
+            }
+
+            const data = await res.json();
+            compassChatSession.push({ role: 'assistant', content: data.reply });
+            try {
+                sessionStorage.setItem('lawcompass-assistant-history', JSON.stringify(compassChatSession.slice(-12)));
+            } catch(e) {}
+
+            if (data.engine && engineBadge) {
+                engineBadge.textContent = data.engine.includes('gemini') ? 'Gemini AI' : (data.engine.includes('hugging') ? 'Hugging Face' : 'Compass Brain');
+            }
+
+            appendAssistantMessage(formatMessageText(data.reply));
+        } catch (err) {
+            if (typingInd) typingInd.remove();
+            appendAssistantMessage(`I apologize, but I could not reach the network right now. Please try again in a moment, or visit **Find Legal Help** to speak with an attorney.`);
+        }
+    };
+
+    chatBody.onclick = (e) => {
+        const chip = e.target.closest('.compass-chip');
+        if (chip && chip.dataset.prompt) {
+            handleSendMessage(chip.dataset.prompt);
+        }
+    };
+
+    form.onsubmit = (e) => {
+        e.preventDefault();
+        handleSendMessage(input.value);
+    };
 }
 
 // ------------------------------------------------------------------------------

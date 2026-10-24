@@ -1,0 +1,87 @@
+const express = require('express');
+const router = express.Router();
+const { askCompass, COMPASS_SYSTEM_PROMPT } = require('../services/compassAssistant');
+const { optionalAuth } = require('../middleware/auth');
+
+/**
+ * POST /api/v1/assistant/chat
+ * Chat with Compass - the in-app help assistant for LawCompass
+ * 
+ * Body:
+ * {
+ *   "message": "How do I lock a document?",
+ *   "history": [ { "role": "user"|"assistant", "content": "..." } ],
+ *   "user": { "name": "...", "email": "...", "persona": "...", "province": "..." }
+ * }
+ */
+router.post('/chat', optionalAuth, async (req, res, next) => {
+    try {
+        const { message, history, user: bodyUser } = req.body;
+
+        if (!message || typeof message !== 'string' || !message.trim()) {
+            return res.status(400).json({
+                error: {
+                    message: 'A message string is required.',
+                    code: 'INVALID_INPUT'
+                }
+            });
+        }
+
+        const trimmed = message.trim();
+        if (trimmed.length > 2000) {
+            return res.status(400).json({
+                error: {
+                    message: 'Message exceeds maximum length of 2000 characters.',
+                    code: 'MESSAGE_TOO_LONG'
+                }
+            });
+        }
+
+        // Determine user context from body or verified auth token
+        let userContext = null;
+        if (bodyUser && typeof bodyUser === 'object') {
+            userContext = {
+                name: bodyUser.name || bodyUser.fullName || null,
+                email: bodyUser.email || null,
+                persona: bodyUser.persona || null,
+                province: bodyUser.province || null,
+                tier: bodyUser.tier || 'standard'
+            };
+        } else if (req.user) {
+            userContext = {
+                name: req.user.user_metadata?.full_name || req.user.email?.split('@')[0],
+                email: req.user.email,
+                persona: req.user.user_metadata?.persona,
+                province: req.user.user_metadata?.province,
+                tier: req.user.user_metadata?.tier || 'standard'
+            };
+        }
+
+        const safeHistory = Array.isArray(history) ? history.slice(-10) : [];
+        const result = await askCompass(trimmed, safeHistory, userContext);
+
+        res.json({
+            success: true,
+            reply: result.reply,
+            engine: result.engine,
+            timestamp: new Date().toISOString()
+        });
+    } catch (err) {
+        next(err);
+    }
+});
+
+/**
+ * GET /api/v1/assistant/prompt
+ * Returns the official assistant persona & boundaries configuration
+ */
+router.get('/prompt', (req, res) => {
+    res.json({
+        name: 'Compass',
+        role: 'In-app help assistant for LawCompass',
+        jurisdiction: 'South Africa',
+        prompt: COMPASS_SYSTEM_PROMPT
+    });
+});
+
+module.exports = router;
