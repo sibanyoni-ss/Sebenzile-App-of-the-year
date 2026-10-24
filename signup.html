@@ -1,0 +1,232 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>Create an Account | LawCompass South Africa</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body class="auth-page">
+    <main class="signin-shell signup-shell-extended">
+        <section class="signin-brand">
+            <a class="logo" href="index.html">
+                <span class="mark">§</span>
+                <strong class="brand-name" style="color:#ffffff;">LawCompass</strong>
+            </a>
+            <div>
+                <p class="eyebrow" style="color:var(--gold);">SOUTH AFRICAN LEGAL WORKSPACE</p>
+                <h1>Protect your rights with professional contracts.</h1>
+                <p>Create legally compliant employment contracts, leases, NDAs, and wills. Lock finalized drafts and consult nearby verified attorneys.</p>
+            </div>
+            <div class="signin-points">
+                <span>✓ POPIA-compliant encrypted document vault</span>
+                <span>✓ BCEA, CPA & Rental Housing Act compliance</span>
+                <span>✓ Proximity-sorted South African law firm network</span>
+            </div>
+        </section>
+
+        <section class="signin-form">
+            <div class="signin-form-inner">
+                <a class="back-home" href="index.html">← Back to home</a>
+
+                <!-- Step 1 Container: Detailed Account Registration -->
+                <div id="signup-step-1">
+                    <p class="eyebrow">NEW USER REGISTRATION</p>
+                    <h1>Create your account</h1>
+                    <p class="intro">Register to access official South African legal templates, cryptographic document locking, and attorney referrals.</p>
+
+                    <div id="signup-alert" style="display:none;" class="auth-status-box"></div>
+
+                    <form id="signup-form">
+                        <!-- 1. Personal & Identity Information -->
+                        <div class="reg-section-title">
+                            <span>1. Personal & Identity Information</span>
+                        </div>
+
+                        <div class="form-row-2col">
+                            <label>
+                                First Name <b>*</b>
+                                <input required id="signup-first-name" autocomplete="given-name" placeholder="e.g. Naledi">
+                            </label>
+                            <label>
+                                Surname <b>*</b>
+                                <input required id="signup-surname" autocomplete="family-name" placeholder="e.g. Khumalo">
+                            </label>
+                        </div>
+
+                        <div class="form-row-2col">
+                            <label>
+                                Date of Birth <span style="font-weight:400; color:var(--muted);">(Optional)</span>
+                                <input type="date" id="signup-dob" max="2008-12-31">
+                            </label>
+                            <label>
+                                Account Type / Persona
+                                <select id="signup-persona">
+                                    <option value="individual" selected>👤 Individual Citizen</option>
+                                    <option value="student">🎓 Student</option>
+                                    <option value="business_owner">🏢 Business Owner / SME</option>
+                                </select>
+                            </label>
+                        </div>
+
+                        <label>
+                            Preferred Language <span style="font-weight:400; color:var(--muted);">(Optional)</span>
+                            <select id="signup-language">
+                                <option value="English" selected>English</option>
+                                <option value="isiZulu">isiZulu</option>
+                                <option value="isiXhosa">isiXhosa</option>
+                                <option value="Afrikaans">Afrikaans</option>
+                                <option value="Sesotho">Sesotho</option>
+                                <option value="Setswana">Setswana</option>
+                                <option value="Sepedi">Sepedi (Northern Sotho)</option>
+                                <option value="Xitsonga">Xitsonga</option>
+                                <option value="siSwati">siSwati</option>
+                                <option value="Tshivenda">Tshivenda</option>
+                                <option value="isiNdebele">isiNdebele</option>
+                            </select>
+                        </label>
+
+                        <!-- 2. Residential Address & Contact Details -->
+                        <div class="reg-section-title">
+                            <span>2. Residential Location & Contact</span>
+                        </div>
+
+                        <label>
+                            Residential Street Address <b>*</b>
+                            <input required id="signup-address" autocomplete="street-address" placeholder="e.g. 142 Longmarket Street, Apt 4B">
+                        </label>
+
+                        <div class="form-row-2col">
+                            <label>
+                                City or Town <b>*</b>
+                                <input required id="signup-city" autocomplete="address-level2" placeholder="e.g. Cape Town">
+                            </label>
+                            <label>
+                                Province <b>*</b>
+                                <select required id="signup-province">
+                                    <option value="" disabled selected>Select your province...</option>
+                                    <option value="Eastern Cape">Eastern Cape</option>
+                                    <option value="Free State">Free State</option>
+                                    <option value="Gauteng">Gauteng</option>
+                                    <option value="KwaZulu-Natal">KwaZulu-Natal</option>
+                                    <option value="Limpopo">Limpopo</option>
+                                    <option value="Mpumalanga">Mpumalanga</option>
+                                    <option value="Northern Cape">Northern Cape</option>
+                                    <option value="North West">North West</option>
+                                    <option value="Western Cape">Western Cape</option>
+                                </select>
+                            </label>
+                        </div>
+
+                        <div class="form-row-2col">
+                            <label>
+                                Postal Code <b>*</b>
+                                <input required id="signup-postal" pattern="[0-9]{4}" maxlength="4" autocomplete="postal-code" placeholder="e.g. 8001">
+                            </label>
+                            <label>
+                                Phone Number <span style="font-weight:400; color:var(--muted);">(Optional)</span>
+                                <input type="tel" id="signup-phone" autocomplete="tel" placeholder="+27 82 123 4567">
+                            </label>
+                        </div>
+
+                        <!-- 3. Account Credentials -->
+                        <div class="reg-section-title">
+                            <span>3. Security Credentials</span>
+                        </div>
+
+                        <label>
+                            Email Address <b>*</b>
+                            <input required type="email" id="signup-email" autocomplete="email" placeholder="you@company.co.za">
+                        </label>
+
+                        <div class="form-row-2col">
+                            <label>
+                                Password <b>*</b>
+                                <input required type="password" id="signup-password" minlength="8" autocomplete="new-password" placeholder="Min 8 characters">
+                            </label>
+                            <label>
+                                Confirm Password <b>*</b>
+                                <input required type="password" id="signup-confirm-password" minlength="8" autocomplete="new-password" placeholder="Confirm password">
+                            </label>
+                        </div>
+
+                        <!-- 4. Terms and Conditions -->
+                        <div class="reg-section-title">
+                            <span>4. Statutory Terms & Conditions</span>
+                        </div>
+
+                        <div class="terms-agreement-box">
+                            <div class="terms-scroll-preview">
+                                <strong>LAWCOMPASS TERMS AND CONDITIONS (DRAFT FOR REVIEW — SOUTH AFRICA, Version 1.0)</strong><br>
+                                LawCompass provides automated document templates and plain-language legal clarity. The service does not constitute an attorney-client relationship. All personal data is processed under the Protection of Personal Information Act (POPIA). By creating an account, you agree to accurate information disclosure, POPIA safe-harbor processing, and statutory compliance with the CPA and ECTA.
+                            </div>
+                            <label class="terms-check-label">
+                                <input required type="checkbox" id="signup-terms-check">
+                                <span>I have read, understood, and accept the <a href="terms.html" target="_blank" style="color:var(--navy); font-weight:700; text-decoration:underline;">LawCompass Terms and Conditions (Version 1.0)</a> and South African POPIA Privacy Policy.</span>
+                            </label>
+                        </div>
+
+                        <button class="primary wide" id="signup-submit-btn" type="submit" style="margin-top:14px;">
+                            Continue & Request Verification Code <span>→</span>
+                        </button>
+                    </form>
+
+                    <p class="auth-foot" style="margin-top:24px;">
+                        Already have an account? <a href="login.html" style="color:var(--navy); font-weight:700; text-decoration:underline;">Sign in here</a>
+                    </p>
+                </div>
+
+                <!-- Step 2 Container: OTP Verification Screen -->
+                <div id="signup-step-2" style="display:none;" class="otp-screen-box">
+                    <span class="otp-icon">✉️</span>
+                    <p class="eyebrow">SECURITY VERIFICATION</p>
+                    <h2 style="font-family:'Playfair Display',serif; font-size:30px; margin:0 0 10px; color:var(--navy);">Verify your email</h2>
+                    <p style="font-size:14px; color:var(--muted); line-height:1.5;">
+                        We have dispatched a 6-digit One-Time PIN (OTP) to <br>
+                        <strong id="otp-target-email" style="color:var(--navy);"></strong>
+                    </p>
+
+                    <div id="otp-alert" style="display:none;" class="auth-status-box"></div>
+
+                    <!-- Instant OTP Dev Pill for Continuous Assessment -->
+                    <div id="otp-dev-container" style="display:none;" class="otp-dev-pill">
+                        <div>
+                            <strong>Instant Verification PIN:</strong>
+                            <span id="otp-dev-code" style="font-family:'DM Mono',monospace; font-weight:700; font-size:16px; margin-left:8px; letter-spacing:2px;"></span>
+                        </div>
+                        <button type="button" id="btn-copy-otp" class="secondary" style="padding:4px 10px; font-size:11px;">Auto-fill</button>
+                    </div>
+
+                    <form id="otp-form" style="margin-top:16px;">
+                        <label style="font-size:13px; font-weight:700; color:var(--ink);">
+                            Enter 6-Digit OTP Code
+                            <input required type="text" id="otp-input" class="otp-digit-input" maxlength="6" pattern="[0-9]{6}" autocomplete="one-time-code" placeholder="······">
+                        </label>
+
+                        <div class="otp-timer" id="otp-timer-display">Code expires in: <strong>10:00</strong></div>
+
+                        <button class="primary wide" id="otp-submit-btn" type="submit">
+                            Verify & Activate Workspace <span>→</span>
+                        </button>
+
+                        <div style="margin-top:20px; font-size:13px; color:var(--muted); display:flex; justify-content:space-between; align-items:center;">
+                            <button type="button" id="btn-back-to-form" style="border:0; background:none; color:var(--navy); text-decoration:underline; font-size:13px; cursor:pointer;">
+                                ← Edit details
+                            </button>
+                            <button type="button" id="btn-resend-otp" style="border:0; background:none; color:var(--gold); font-weight:700; cursor:pointer;">
+                                Resend Code ⟳
+                            </button>
+                        </div>
+                    </form>
+                </div>
+
+                <p style="text-align:center; font-size:12px; color:#94a3b8; margin-top:28px;">
+                    Protected by 256-bit encryption & South African POPIA compliance.
+                </p>
+            </div>
+        </section>
+    </main>
+
+    <script src="app.js"></script>
+</body>
+</html>

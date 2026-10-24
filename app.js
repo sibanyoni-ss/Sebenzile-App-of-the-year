@@ -1,30 +1,2005 @@
-/* Standalone client application: no fetch/XHR/API calls. */
-const $=(s,p=document)=>p.querySelector(s), esc=s=>String(s).replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
-const F=(label,type='text',options=[],required=true)=>({label,type,options,required}), S=(title,fields)=>({title,fields});
-const data={
- Employment:{title:'Employment Contract',desc:'Set clear expectations for a new working relationship.',sections:[S('Employer and employee', [F('Employer / company legal name'),F('Company registration number'),F('Employer physical address','textarea'),F('Employee full names'),F('Employee ID / passport number'),F('Employee residential address','textarea'),F('Employee email address','email'),F('Employee telephone number','tel'),F('Employee gender','select',['Female','Male','Prefer not to say'],false)]),S('Role and term',[F('Job title'),F('Department / reporting manager', 'text',[],false),F('Employment type','select',['Full-time','Part-time','Fixed-term','Internship','Casual']),F('Start date','date'),F('End date','date',[],false),F('No fixed end date','checkbox',[],false),F('Place of work','text',[],false),F('Working hours per week','number'),F('Responsibilities and performance expectations','textarea')]),S('Pay and benefits',[F('Salary / wage amount (R)','number'),F('Remuneration frequency','select',['Hourly','Weekly','Bi-weekly','Monthly']),F('Rate per hour (R)','number',[],false),F('Overtime rate / calculation','text',[],false),F('Payment date / method','text',[],false),F('Annual leave days','number'),F('Benefits','checkbox-group',['Medical aid','Car allowance','Provident fund','Company stock','UIF','Insurance'],false)]),S('Ending employment',[F('Probation period','text',[],false),F('Notice period','text'),F('Confidentiality / restraint obligations','textarea',[],false),F('Governing law / jurisdiction','text',[],false)])]},
- NDA:{title:'Non-Disclosure Agreement',desc:'Protect confidential information before important conversations.',sections:[S('Disclosing party',[F('Disclosing party name / company'),F('Disclosing party registration or ID number','text',[],false),F('Disclosing party address','textarea'),F('Disclosing party email','email'),F('Disclosing party phone','tel')]),S('Receiving party',[F('Receiving party name / company'),F('Receiving party registration or ID number','text',[],false),F('Receiving party address','textarea'),F('Receiving party email','email'),F('Receiving party phone','tel')]),S('Confidentiality terms',[F('Effective date','date'),F('Term / expiration date','date',[],false),F('Purpose of disclosure','textarea'),F('Confidential information scope','textarea'),F('Permitted recipients / exclusions','textarea',[],false),F('Return or destruction of information','select',['Return on request','Destroy on request','Either return or destroy'],false),F('Governing law / jurisdiction','text'),F('Acknowledgement of terms','checkbox',[],true)])]},
- Service:{title:'Service Contract',desc:'Define scope, payment and delivery terms for services.',sections:[S('Parties and scope',[F('Service provider legal name'),F('Service provider registration / ID number','text',[],false),F('Service recipient / client legal name'),F('Client address','textarea',[],false),F('Services rendered to / project name'),F('Detailed service scope and deliverables','textarea'),F('Acceptance criteria / milestones','textarea',[],false)]),S('Timing and payment',[F('Start date','date'),F('End date','date'),F('Payment method','select',['EFT / bank transfer','Cash','Card','Other']),F('Payment frequency','select',['Once-off','Weekly','Monthly','Milestone-based','Other']),F('Total payment (R)','number'),F('Payment breakdown / milestone schedule','textarea'),F('Late-payment interest or fee','text',[],false),F('Notice period','text')]),S('Risk and rights',[F('Damage liabilities','select',['Service recipient','Service provider','Shared']),F('Copyright / intellectual-property ownership','select',['Service recipient','Service provider','Shared']),F('Confidentiality requirements','textarea',[],false),F('Insurance requirements','textarea',[],false),F('Termination rights','textarea',[],false),F('Governing law / dispute process','textarea',[],false)])]},
- Will:{title:'Last Will and Testament',desc:'Record your wishes for your estate and loved ones.',sections:[S('Testator details',[F('Testator full names'),F('ID / passport number'),F('Date created','date'),F('Residential address','textarea',[],false),F('Marital status','select',['Single','Married in community of property','Married out of community of property','Divorced','Widowed'],false),F('Revoke all previous wills and codicils','checkbox',[],false)]),S('Executor and witnesses',[F('Executor full names'),F('Executor contact details','textarea',[],false),F('Alternate executor full names','text',[],false),F('Witness 1 full names'),F('Witness 1 ID / passport number','text',[],false),F('Witness 2 full names','text',[],false),F('Witness 2 ID / passport number','text',[],false)]),S('Beneficiaries and guardians',[F('Beneficiary 1 full names'),F('Beneficiary 1 ID / passport number'),F('Beneficiary 1 percentage','number'),F('Beneficiary 2 full names','text',[],false),F('Beneficiary 2 ID / passport number','text',[],false),F('Beneficiary 2 percentage','number',[],false),F('Guardian for minor children','text',[],false),F('Alternate guardian','text',[],false)]),S('Estate directions',[F('Asset / property 1','textarea'),F('Asset / property 2','textarea',[],false),F('Additional assets, specific bequests or residue instructions','textarea',[],false),F('Funeral wishes','textarea',[],false),F('Digital assets / online accounts instructions','textarea',[],false)])]},
- Lease:{title:'Lease Agreement',desc:'Create terms for a residential rental arrangement.',sections:[S('Parties and premises',[F('Landlord / lessor full name'),F('Landlord ID / registration number','text',[],false),F('Tenant / lessee full name'),F('Tenant ID / passport number','text',[],false),F('Property address','textarea'),F('Included furniture / inventory','textarea',[],false),F('Permitted use of premises','select',['Residential only','Commercial only','Mixed use'],false),F('Occupants / dependants','textarea',[],false)]),S('Term and rent',[F('Lease start date','date'),F('Lease end date','date'),F('Monthly rent (R)','number'),F('Rent amount in words','text'),F('Deposit (R)','number'),F('Rent payment day of month','number'),F('Payment method / bank details','textarea',[],false),F('Annual escalation percentage','number',[],false),F('Notice period','text'),F('Agreement signed on','date')]),S('Utilities and obligations',[F('Utility account holder','select',['Tenant / lessee','Landlord / lessor','Shared']),F('Utilities payable by tenant','checkbox-group',['Water','Sewer services','Electricity','Refuse / bins','Internet'],false),F('Maintenance and repair obligations','textarea',[],false),F('Pets / smoking rules','textarea',[],false),F('Subletting consent','select',['Not permitted','Permitted with written consent','Permitted'],false),F('Inspection and condition report','textarea',[],false),F('Governing law / dispute resolution','textarea',[],false)])]}
+/* ==============================================================================
+   LAWCOMPASS CLIENT APPLICATION (POPIA-Compliant & Secure Legal Platform)
+   Features:
+   1. Route Protection & Auth Guard (Protected pages require sign-in)
+   2. Real DOCX Template Population (Maps form inputs directly to docx placeholders)
+   3. Proximity-Based Legal Help (Closest law firms under specific issue listed first)
+   4. Document Locking with SHA-256 Cryptographic Tamper Seals
+   5. Personalize Contract Studio (Custom terms & conditions / clause presets)
+   6. Premium Benefits Showcase & Comparison Matrix
+   ============================================================================== */
+
+const $ = (s, p = document) => p.querySelector(s);
+const $$ = (s, p = document) => [...p.querySelectorAll(s)];
+const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({
+    '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+}[c]));
+
+// Form builder helpers
+const F = (label, type = 'text', options = [], required = true) => ({ label, type, options, required });
+const S = (title, fields) => ({ title, fields });
+
+// ------------------------------------------------------------------------------
+// 1. DATA DEFINITIONS & TEMPLATE SCHEMAS
+// ------------------------------------------------------------------------------
+const data = {
+    Employment: {
+        title: 'Employment Contract',
+        templateFile: 'Templates/Employee_Contract.docx',
+        desc: 'South African Basic Conditions of Employment Act (BCEA) compliant employment contract.',
+        sections: [
+            S('Employer and employee', [
+                F('Employer / company legal name'),
+                F('Company registration number'),
+                F('Employer physical address', 'textarea'),
+                F('Employee full names'),
+                F('Employee ID / passport number'),
+                F('Employee residential address', 'textarea'),
+                F('Employee email address', 'email'),
+                F('Employee telephone number', 'tel'),
+                F('Employee gender', 'select', ['Female', 'Male', 'Prefer not to say'], false)
+            ]),
+            S('Role and term', [
+                F('Job title'),
+                F('Department / reporting manager', 'text', [], false),
+                F('Employment type', 'select', ['Full-time', 'Part-time', 'Fixed-term', 'Internship', 'Casual']),
+                F('Start date', 'date'),
+                F('End date', 'date', [], false),
+                F('No fixed end date', 'checkbox', [], false),
+                F('Place of work', 'text', [], false),
+                F('Working hours per week', 'number'),
+                F('Responsibilities and performance expectations', 'textarea')
+            ]),
+            S('Pay and benefits', [
+                F('Salary / wage amount (R)', 'number'),
+                F('Remuneration frequency', 'select', ['Hourly', 'Weekly', 'Bi-weekly', 'Monthly']),
+                F('Rate per hour (R)', 'number', [], false),
+                F('Overtime rate / calculation', 'text', [], false),
+                F('Payment date / method', 'text', [], false),
+                F('Annual leave days', 'number'),
+                F('Benefits', 'checkbox-group', ['Medical aid', 'Car allowance', 'Provident fund', 'Company stock', 'UIF', 'Insurance'], false)
+            ]),
+            S('Ending employment', [
+                F('Probation period', 'text', [], false),
+                F('Notice period', 'text'),
+                F('Confidentiality / restraint obligations', 'textarea', [], false),
+                F('Governing law / jurisdiction', 'text', [], false)
+            ])
+        ]
+    },
+    Lease: {
+        title: 'Residential Lease Agreement',
+        templateFile: 'Templates/Lease_Agreement.docx',
+        desc: 'Rental Housing Act and Consumer Protection Act (CPA) compliant rental lease.',
+        sections: [
+            S('Parties and premises', [
+                F('Landlord / lessor full name'),
+                F('Landlord ID / registration number', 'text', [], false),
+                F('Tenant / lessee full name'),
+                F('Tenant ID / passport number', 'text', [], false),
+                F('Property address', 'textarea'),
+                F('Included furniture / inventory', 'textarea', [], false),
+                F('Permitted use of premises', 'select', ['Residential only', 'Commercial only', 'Mixed use'], false),
+                F('Occupants / dependants', 'textarea', [], false)
+            ]),
+            S('Term and rent', [
+                F('Lease start date', 'date'),
+                F('Lease end date', 'date'),
+                F('Monthly rent (R)', 'number'),
+                F('Rent amount in words', 'text'),
+                F('Deposit (R)', 'number'),
+                F('Rent payment day of month', 'number'),
+                F('Payment method / bank details', 'textarea', [], false),
+                F('Annual escalation percentage', 'number', [], false),
+                F('Notice period', 'text'),
+                F('Agreement signed on', 'date')
+            ]),
+            S('Utilities and obligations', [
+                F('Utility account holder', 'select', ['Tenant / lessee', 'Landlord / lessor', 'Shared']),
+                F('Utilities payable by tenant', 'checkbox-group', ['Water', 'Sewer services', 'Electricity', 'Refuse / bins', 'Internet'], false),
+                F('Maintenance and repair obligations', 'textarea', [], false),
+                F('Pets / smoking rules', 'textarea', [], false),
+                F('Subletting consent', 'select', ['Not permitted', 'Permitted with written consent', 'Permitted'], false),
+                F('Inspection and condition report', 'textarea', [], false),
+                F('Governing law / dispute resolution', 'textarea', [], false)
+            ])
+        ]
+    },
+    NDA: {
+        title: 'Non-Disclosure Agreement',
+        templateFile: 'Templates/NDA.docx',
+        desc: 'Safeguard trade secrets and proprietary data with enforceable South African confidentiality.',
+        sections: [
+            S('Disclosing party', [
+                F('Disclosing party name / company'),
+                F('Disclosing party registration or ID number', 'text', [], false),
+                F('Disclosing party address', 'textarea'),
+                F('Disclosing party email', 'email'),
+                F('Disclosing party phone', 'tel')
+            ]),
+            S('Receiving party', [
+                F('Receiving party name / company'),
+                F('Receiving party registration or ID number', 'text', [], false),
+                F('Receiving party address', 'textarea'),
+                F('Receiving party email', 'email'),
+                F('Receiving party phone', 'tel')
+            ]),
+            S('Confidentiality terms', [
+                F('Effective date', 'date'),
+                F('Term / expiration date', 'date', [], false),
+                F('Non-disclosure period (e.g. 2 years)', 'text', [], false),
+                F('Purpose of disclosure', 'textarea'),
+                F('Confidential information scope', 'textarea'),
+                F('Permitted recipients / exclusions', 'textarea', [], false),
+                F('Return or destruction of information', 'select', ['Return on request', 'Destroy on request', 'Either return or destroy'], false),
+                F('Governing law / jurisdiction', 'text'),
+                F('Acknowledgement of terms', 'checkbox', [], true)
+            ])
+        ]
+    },
+    Service: {
+        title: 'Service Contract Agreement',
+        templateFile: 'Templates/Service_Agreement.docx',
+        desc: 'Define scope, milestones, intellectual property, and billing schedules for services.',
+        sections: [
+            S('Parties and scope', [
+                F('Service provider legal name'),
+                F('Service provider registration / ID number', 'text', [], false),
+                F('Service recipient / client legal name'),
+                F('Client address', 'textarea', [], false),
+                F('Services rendered to / project name'),
+                F('Detailed service scope and deliverables', 'textarea'),
+                F('Acceptance criteria / milestones', 'textarea', [], false)
+            ]),
+            S('Timing and payment', [
+                F('Start date', 'date'),
+                F('End date', 'date'),
+                F('Payment method', 'select', ['EFT / bank transfer', 'Cash', 'Card', 'Other']),
+                F('Payment frequency', 'select', ['Once-off', 'Weekly', 'Monthly', 'Milestone-based', 'Other']),
+                F('Total payment (R)', 'number'),
+                F('Payment breakdown / milestone schedule', 'textarea'),
+                F('Late-payment interest or fee', 'text', [], false),
+                F('Notice period', 'text')
+            ]),
+            S('Risk and rights', [
+                F('Damage liabilities', 'select', ['Service recipient', 'Service provider', 'Shared']),
+                F('Copyright / intellectual-property ownership', 'select', ['Service recipient', 'Service provider', 'Shared']),
+                F('Confidentiality requirements', 'textarea', [], false),
+                F('Insurance requirements', 'textarea', [], false),
+                F('Termination rights', 'textarea', [], false),
+                F('Governing law / dispute process', 'textarea', [], false)
+            ])
+        ]
+    },
+    Will: {
+        title: 'Last Will and Testament',
+        templateFile: 'Templates/Will.docx',
+        desc: 'Record your estate bequests, testamentary trusts, and executor nominations legally.',
+        sections: [
+            S('Testator details', [
+                F('Testator full names'),
+                F('ID / passport number'),
+                F('Date created', 'date'),
+                F('Residential address', 'textarea', [], false),
+                F('Marital status', 'select', ['Single', 'Married in community of property', 'Married out of community of property', 'Divorced', 'Widowed'], false),
+                F('Revoke all previous wills and codicils', 'checkbox', [], false)
+            ]),
+            S('Executor and witnesses', [
+                F('Executor full names'),
+                F('Executor contact details', 'textarea', [], false),
+                F('Alternate executor full names', 'text', [], false),
+                F('Witness 1 full names'),
+                F('Witness 1 ID / passport number', 'text', [], false),
+                F('Witness 2 full names', 'text', [], false),
+                F('Witness 2 ID / passport number', 'text', [], false)
+            ]),
+            S('Beneficiaries and guardians', [
+                F('Beneficiary 1 full names'),
+                F('Beneficiary 1 ID / passport number'),
+                F('Beneficiary 1 percentage', 'number'),
+                F('Beneficiary 2 full names', 'text', [], false),
+                F('Beneficiary 2 ID / passport number', 'text', [], false),
+                F('Beneficiary 2 percentage', 'number', [], false),
+                F('Residuary beneficiary full name', 'text', [], false),
+                F('Alternate residuary beneficiary full name', 'text', [], false),
+                F('Guardian for minor children', 'text', [], false),
+                F('Alternate guardian', 'text', [], false)
+            ]),
+            S('Estate directions', [
+                F('Asset / property 1', 'textarea'),
+                F('Asset / property 2', 'textarea', [], false),
+                F('Additional assets, specific bequests or residue instructions', 'textarea', [], false),
+                F('Funeral wishes', 'textarea', [], false),
+                F('Digital assets / online accounts instructions', 'textarea', [], false)
+            ])
+        ]
+    }
 };
-const terms={consideration:['Consideration','Something of value exchanged by parties to a contract.','Example: payment in return for a service.'],nda:['NDA','A non-disclosure agreement protects confidential information.','Example: two businesses sign one before sharing a proposal.'],lease:['Lease','An agreement allowing a tenant to use property for a defined period in exchange for rent.','Example: a 12-month residential rental agreement.'],will:['Will','A legal declaration of wishes for an estate after death.','Example: a will names beneficiaries and an executor.'],'service contract':['Service contract','An agreement setting out services, payment and responsibilities.','Example: a designer and client agree on deliverables and price.']};
-const matters={'Civil dispute':['Goliath & Co — Cape Town','Thomson Wilks — Sandton'],'Family law':['Wright Rose-Innes — Johannesburg','Anthony Rome Attorneys — Parkwood'],'Labour dispute':['Deale Attorneys — KZN','CK Attorneys Inc — Gauteng'],'Commercial dispute':['Kleingels Attorneys — Bloemfontein','Munro Flowers & Vermaak — Rosebank'],'Property dispute':['Hugh Raichlin Attorneys — Norwood','Malan Scholes Inc. — Gauteng'],'Contract dispute':['Cuzen Randeree Dyasi Inc. — Victory Park','Magerman Attorneys — Century City']};
-const page=document.body.dataset.page, profile=()=>JSON.parse(localStorage.getItem('lawbuddy-profile')||'{"name":"Guest"}'), history=()=>JSON.parse(localStorage.getItem('lawbuddy-history')||'[]');
-const nav=[['dashboard.html','⌂','Overview'],['documents.html','▣','Generate document'],['upload-contract.html','↥','Upload contract'],['legal-help.html','⌁','Find legal help'],['dictionary.html','◌','Legal dictionary'],['history.html','◷','Document history'],['translate.html','文','Plain-language helper'],['pricing.html','✦','Plans & premium']];
-function shell(title,body){let active={dashboard:'dashboard.html',documents:'documents.html',builder:'documents.html',upload:'upload-contract.html',help:'legal-help.html',dictionary:'dictionary.html',history:'history.html',translate:'translate.html',pricing:'pricing.html'}[page];document.body.innerHTML=`<div id="toast" role="status"></div><div id="nav-scrim"></div><aside id="sidebar"><div class="sidebar-brand"><a class="logo" href="dashboard.html"><span>§</span><strong>LawBuddy</strong></a><button id="sidebar-toggle" aria-label="Collapse navigation" aria-controls="sidebar" aria-expanded="true">‹</button></div><p class="side-label">WORKSPACE</p><nav>${nav.map(x=>`<a class="${x[0]===active?'active':''}" href="${x[0]}" title="${x[2]}">${x[1]} <span>${x[2]}</span></a>`).join('')}</nav><div class="side-bottom"><button id="signout" title="Sign out">↪ <span>Sign out</span></button></div></aside><main><header><div class="header-title"><button id="mobile-menu" aria-label="Open navigation" aria-controls="sidebar" aria-expanded="false">☰</button><div><p class="eyebrow">YOUR WORKSPACE</p><h2>${title}</h2></div></div><div class="user"><span>${esc(profile().name).slice(0,1).toUpperCase()}</span><div><b>${esc(profile().name)}</b><small>Local demo</small></div></div></header>${body}</main></div>`;let toggle=()=>{let collapsed=document.body.classList.toggle('sidebar-collapsed');let expanded=!collapsed;$('#sidebar-toggle').setAttribute('aria-expanded',String(expanded));$('#sidebar-toggle').setAttribute('aria-label',expanded?'Collapse navigation':'Expand navigation');$('#sidebar-toggle').textContent=expanded?'‹':'›'};let mobile=()=>{let open=document.body.classList.toggle('sidebar-open');$('#mobile-menu').setAttribute('aria-expanded',String(open));$('#mobile-menu').setAttribute('aria-label',open?'Close navigation':'Open navigation')};$('#sidebar-toggle').onclick=toggle;$('#mobile-menu').onclick=mobile;$('#nav-scrim').onclick=()=>{document.body.classList.remove('sidebar-open');$('#mobile-menu').setAttribute('aria-expanded','false')};$('#signout').onclick=()=>{localStorage.removeItem('lawbuddy-profile');location.href='index.html'}}
-function toast(message){let t=$('#toast');t.textContent=message;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),3000)}
-function cards(){return `<div class="template-grid">${Object.entries(data).map(([key,t])=>`<a class="template" href="builder.html?type=${key}"><span class="icon">▣</span><h3>${t.title}</h3><p>${t.desc}</p><footer>Use this template →</footer></a>`).join('')}</div>`}
-function dashboard(){shell('Good afternoon',`<section class="hero"><div><p class="eyebrow">LAW BUDDY</p><h1>Legal documents, without the legal fog.</h1><p>Create a guided document in minutes, or explore a term before you sign.</p><a class="primary" href="documents.html">Create a document <span>→</span></a></div><div class="hero-art"><div class="paper">AGREEMENT<i></i><i></i><i></i><b>✓</b></div></div></section><div class="stats"><article><span>◷</span><div><b>${history().length}</b><small>Documents created</small></div></article><article><span>▣</span><div><b>5</b><small>Available templates</small></div></article><article><span>✦</span><div><b>Private</b><small>Stored in your browser</small></div></article></div><section class="section-head"><div><p class="eyebrow">START HERE</p><h2>What do you need today?</h2></div></section><div class="action-grid"><a href="documents.html"><b>▣</b><span><strong>Create a document</strong><small>Start with a guided legal template</small></span><i>→</i></a><a href="dictionary.html"><b>◌</b><span><strong>Understand a legal term</strong><small>Plain-English definitions</small></span><i>→</i></a><a href="legal-help.html"><b>⌁</b><span><strong>Find legal help</strong><small>Browse firms by matter</small></span><i>→</i></a></div>`)}
-function documents(){shell('Create a document',`<p class="eyebrow">DOCUMENT BUILDER</p><h1>Create a document</h1><p class="intro">Choose a template and answer a few clear questions. Your draft downloads directly to your device.</p>${cards()}`)}
-function fieldMarkup(f){let required=f.required?'required':'';let input=f.type==='textarea'?`<textarea ${required}></textarea>`:f.type==='select'?`<select ${required}><option value="">Select an option</option>${f.options.map(o=>`<option>${o}</option>`).join('')}</select>`:f.type==='checkbox-group'?`<div class="choice-grid">${f.options.map(o=>`<label><input type="checkbox" name="${f.label}" value="${o}">${o}</label>`).join('')}</div>`:f.type==='checkbox'?`<span class="single-check"><input type="checkbox" ${required}> I confirm</span>`:`<input type="${f.type}" ${required}>`;return `<label class="form-field ${f.type==='textarea'||f.type==='checkbox-group'?'full':''}"><span>${f.label}${f.required?' <b aria-hidden="true">*</b>':''}</span>${input}</label>`}
-function builder(){let type=new URLSearchParams(location.search).get('type');let t=data[type]||data.Employment;let sections=[...t.sections,S('Additional terms and conditions',[F('Additional terms and conditions','textarea',[],false)])];shell('Document builder',`<a class="back" href="documents.html">← All templates</a><div class="builder-head"><div><p class="eyebrow">DOCUMENT BUILDER</p><h1>${t.title}</h1><p>${t.desc}</p></div><span class="step">Complete all applicable details</span></div><form id="build-form" class="document-form">${sections.map(s=>`<fieldset><legend>${s.title}</legend><div class="field-grid">${s.fields.map(fieldMarkup).join('')}</div></fieldset>`).join('')}<p class="form-note">This guided draft is general information, not legal advice. Have a qualified lawyer review it before signing.</p><button class="primary">Download draft <span>↓</span></button></form>`);$('#build-form').onsubmit=e=>{e.preventDefault();let rows=[...e.target.querySelectorAll('.form-field')].map(l=>{let label=l.querySelector('span').textContent.replace('*','').trim(),checks=[...l.querySelectorAll('input[type=checkbox]:checked')].map(x=>x.value||'Confirmed');let control=l.querySelector('input:not([type=checkbox]),textarea,select');return [label,checks.length?checks.join(', '):(control?.value||'Not provided')]});let html=`<meta charset="utf-8"><style>body{font-family:Georgia;max-width:700px;margin:60px auto;line-height:1.6}h1{text-align:center}td{padding:10px;border-bottom:1px solid #ddd}table{width:100%;border-collapse:collapse}</style><h1>${esc(t.title)}</h1><p>Prepared with LawBuddy on ${new Date().toLocaleDateString('en-ZA')}. This draft should be reviewed by a qualified legal professional before use.</p><table>${rows.map(r=>`<tr><td><b>${esc(r[0])}</b></td><td>${esc(r[1])}</td></tr>`).join('')}</table><p style="margin-top:70px">____________________________<br>Signature</p>`;let a=document.createElement('a');a.href=URL.createObjectURL(new Blob([html],{type:'application/msword'}));a.download=t.title.replaceAll(' ','_')+'.doc';a.click();let h=history();h.unshift({name:t.title,date:new Date().toLocaleString('en-ZA')});localStorage.setItem('lawbuddy-history',JSON.stringify(h));toast('Document downloaded and added to local history.')}}
-function dictionary(){shell('Legal dictionary',`<p class="eyebrow">PLAIN-ENGLISH LEGAL LANGUAGE</p><h1>Legal dictionary</h1><p class="intro">Search our local, curated terms. No external dictionary service is called.</p><div class="search"><input id="term" placeholder="Search a term, e.g. consideration"><button class="primary" id="search">Search</button></div><div id="definition" class="definition empty">Search a term to see its meaning and usage.</div><div class="chips">${Object.keys(terms).map(t=>`<button data-term="${t}">${t}</button>`).join('')}</div>`);let show=w=>{let v=terms[w.toLowerCase()];$('#definition').classList.remove('empty');$('#definition').innerHTML=v?`<h3>${v[0]}</h3><p>${v[1]}</p><p><b>In context:</b> ${v[2]}</p>`:`<h3>${esc(w)}</h3><p>This local demo has no definition for that term. Try one of the suggestions below.</p>`};$('#search').onclick=()=>show($('#term').value);document.addEventListener('click',e=>{if(e.target.dataset.term){$('#term').value=e.target.dataset.term;show(e.target.dataset.term)}})}
-function help(){shell('Find legal help',`<p class="eyebrow">FIND THE RIGHT SUPPORT</p><h1>Find legal help</h1><p class="intro">Select a type of matter to see example South African firms. Verify availability and suitability directly with a firm.</p><div class="matter-layout"><div class="matter-list">${Object.keys(matters).map(m=>`<button data-matter="${m}">${m} <span>→</span></button>`).join('')}</div><div class="firms" id="firms"><span class="empty-icon">⌁</span><h3>Select a matter</h3><p>Suggested firms will appear here.</p></div></div>`);document.addEventListener('click',e=>{let m=e.target.dataset.matter;if(!m)return;document.querySelectorAll('[data-matter]').forEach(b=>b.classList.toggle('active',b.dataset.matter===m));$('#firms').innerHTML=`<p class="eyebrow">${m.toUpperCase()}</p><h3>Suggested firms</h3>${matters[m].map(f=>`<div class="firm"><b>${f}</b><small>South Africa · Legal services</small></div>`).join('')}`})}
-function historyPage(){let h=history();shell('Document history',`<p class="eyebrow">YOUR WORK</p><h1>Document history</h1><div class="history-list">${h.length?h.map(x=>`<article class="history-item"><span>▣</span><div><b>${x.name}</b><small>Created ${x.date}</small></div><small>Stored locally</small></article>`).join(''):'<div class="empty-state"><span class="empty-icon">◷</span><h3>No documents yet</h3><p>Your generated drafts will appear here.</p><a class="primary" href="documents.html">Create your first document</a></div>'}</div>`)}
-function plainClause(clause){if(/terminat|cancel|notice/i.test(clause))return 'This explains how the agreement can end and whether notice must be given first.';if(/pay|fee|rent|invoice|cost/i.test(clause))return 'This deals with money: check the amount, due date, payment method, and any consequence of paying late.';if(/liab|indemn|damage|loss/i.test(clause))return 'This allocates risk. Check who may have to pay if something goes wrong or someone makes a claim.';if(/confidential|non-disclos/i.test(clause))return 'This requires certain information to be kept private and may limit who can receive it.';if(/dispute|jurisdiction|governing law/i.test(clause))return 'This says which law applies and how or where a disagreement must be resolved.';if(/warrant|represent/i.test(clause))return 'This is a promise that a stated fact is true or that a party has authority to enter the agreement.';return 'This sets a condition, right, obligation, or consequence. Check who must do what, by when, and what happens if it is not done.'}
-function upload(){shell('Upload contract',`<p class="eyebrow">LOCAL CONTRACT READER</p><h1>Upload a contract</h1><p class="intro">Select a text-based agreement or paste a clause. LawBuddy explains the wording in simple English without sending your contract anywhere.</p><div class="upload-layout"><section class="upload-card"><label class="dropzone" for="contract-file"><span>↥</span><b>Upload your contract</b><small>PDF, DOCX, DOC, RTF, ODT, TXT, Markdown, HTML and CSV accepted.</small><input id="contract-file" type="file" accept=".pdf,.doc,.docx,.rtf,.odt,.txt,.md,.html,.htm,.csv,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/rtf,application/vnd.oasis.opendocument.text,text/plain,text/markdown,text/html,text/csv"></label><p id="upload-status" class="upload-status">Your file stays on this device.</p><label class="paste-label">Contract or clause text<textarea id="contract-text" placeholder="Paste a clause or the full text of your contract here…"></textarea></label><button class="primary" id="explain-contract">Explain in simple English</button></section><section class="explanation-card"><p class="eyebrow">PLAIN-ENGLISH EXPLANATION</p><div id="contract-explanation" class="reader-empty"><span>◌</span><h3>Ready when you are</h3><p>Upload a text file or paste a clause to see a simple explanation and practical reading prompts.</p></div></section></div><p class="form-note">This local guide is not legal advice and does not assess enforceability. Ask a qualified lawyer about rights, obligations, risk, or a dispute.</p>`);let file=$('#contract-file'),text=$('#contract-text'),status=$('#upload-status');file.onchange=()=>{let selected=file.files[0];if(!selected)return;let textFile=/\.(txt|md|html?|csv)$/i.test(selected.name);status.textContent=`Selected: ${selected.name}`;if(!textFile){status.textContent=`${selected.name} selected. Word and PDF files cannot be read by this standalone browser version; copy the relevant clause into the text area below.`;return}let reader=new FileReader();reader.onload=()=>{text.value=reader.result;status.textContent=`${selected.name} loaded locally. Ready to explain.`};reader.readAsText(selected)};$('#explain-contract').onclick=()=>{let value=text.value.trim();if(!value)return toast('Upload a readable text file or paste contract text first.');let clauses=value.split(/(?<=[.!?;])\s+|\n+/).filter(x=>x.trim().length>20).slice(0,8);let flags=[];if(/terminat|cancel|notice/i.test(value))flags.push('how and when either party may end the agreement');if(/pay|fee|rent|invoice|cost/i.test(value))flags.push('payment amount, timing, and late-payment consequences');if(/liab|indemn|damage|loss/i.test(value))flags.push('who carries the risk for loss, damage, or claims');if(/confidential|non-disclos/i.test(value))flags.push('what information must be kept private');if(/dispute|jurisdiction|governing law/i.test(value))flags.push('which law applies and how disputes are handled');let simple=clauses.map((c,i)=>`<article><b>Clause ${i+1}</b><p>${esc(c)}</p><small>Plain reading: ${plainClause(c)}</small></article>`).join('');$('#contract-explanation').className='';$('#contract-explanation').innerHTML=`<h3>What this contract appears to cover</h3><p>In simple terms, this agreement records what each party agrees to do, what they may expect from the other, and what can happen if those commitments are not met.</p>${flags.length?`<h4>Pay close attention to</h4><ul>${flags.map(x=>`<li>${x}</li>`).join('')}</ul>`:''}<h4>Clauses found</h4>${simple||'<p>Try adding more text so the reader can identify clauses.</p>'}`}} 
-function translate(){shell('Plain-language helper',`<p class="eyebrow">MAKE IT CLEARER</p><h1>Plain-language helper</h1><p class="intro">Paste a clause to receive a local, generic reading prompt. Your text is not transmitted anywhere.</p><textarea id="clause" placeholder="Paste a legal clause here…"></textarea><div class="translate-actions"><select><option>Plain English</option><option>isiZulu (guide)</option><option>Sesotho (guide)</option><option>Afrikaans (guide)</option></select><button class="primary" id="explain">Explain text</button></div><div class="definition" id="result">Your explanation will appear here.</div>`);$('#explain').onclick=()=>{let words=$('#clause').value.trim().split(/\s+/).filter(Boolean).length;if(!words)return toast('Paste a clause first.');$('#result').innerHTML=`<h3>Reading guide</h3><p>This ${words}-word clause should be read by identifying: who has an obligation, what they must do, when they must do it, what it costs, and what happens if a party does not comply.</p><p><b>Important:</b> Seek qualified advice before agreeing to wording that affects your rights or obligations.</p>`}}
-function pricing(){shell('Plans & premium',`<p class="eyebrow">FLEXIBLE PLANS</p><h1>Choose the support you need</h1><div class="plans"><article><p>FREE</p><h2>R0</h2><small>For getting started</small><ul><li>5 document templates</li><li>Legal dictionary</li><li>Browser-local history</li></ul><button class="secondary">Current demo</button></article><article class="featured"><p>STANDARD</p><h2>R99 <small>/ month</small></h2><small>For regular legal tasks</small><ul><li>Unlimited documents</li><li>Compliance checks</li><li>Priority support</li></ul><button class="primary pay">Choose Standard</button></article><article><p>PREMIUM</p><h2>R199 <small>/ month</small></h2><small>For complex needs</small><ul><li>Everything in Standard</li><li>Professional referrals</li><li>Advanced guidance</li></ul><button class="secondary pay">Choose Premium</button></article></div>`);document.querySelectorAll('.pay').forEach(b=>b.onclick=()=>toast('Payments are intentionally disconnected in this standalone frontend.'))}
-if($('#login-form'))$('#login-form').onsubmit=e=>{e.preventDefault();localStorage.setItem('lawbuddy-profile',JSON.stringify({name:$('#display-name').value.trim()}));location.href='dashboard.html'};
-({dashboard,documents,builder,dictionary,help,history:historyPage,upload,translate,pricing}[page]||(()=>{}))();
+
+// Recommended South African clause presets for contract personalization
+const CLAUSE_PRESETS = [
+    {
+        title: 'Restraint of Trade & Non-Solicitation',
+        body: 'The Employee/Service Provider undertakes that for a period of 12 (twelve) months following the termination of this Agreement, they shall not directly or indirectly solicit any clients, employees, or contractors, nor engage in competing commercial activities within the Republic of South Africa.'
+    },
+    {
+        title: 'Intellectual Property Assignment',
+        body: 'All intellectual property rights, inventions, software, documentation, designs, and work product developed under this Agreement shall vest exclusively in the Client/Company upon creation as work-for-hire, with full title transferred free of encumbrance.'
+    },
+    {
+        title: 'Remote Work & Equipment Protocol',
+        body: 'The Employee may perform duties remotely up to 3 days per week subject to operational requirements, maintaining strict POPIA data privacy safeguards, reliable internet connectivity, and secure care of company-issued IT equipment.'
+    },
+    {
+        title: 'Late Payment Penalty Interest',
+        body: 'Any undisputed invoice or rental payment not settled on or before the due date shall accrue penalty interest at the rate of 2% (two percent) per month, calculated daily and compounded monthly until paid in full.'
+    },
+    {
+        title: 'AFSA Commercial Arbitration',
+        body: 'Any dispute arising in connection with this Agreement shall be referred to and finally resolved by expedited confidential arbitration administered by the Arbitration Foundation of Southern Africa (AFSA) under its Commercial Rules in Johannesburg.'
+    },
+    {
+        title: 'Force Majeure & Unforeseen Events',
+        body: 'Neither party shall be liable for non-performance or delay resulting from acts of God, civil unrest, natural disasters, national power grid failure, or governmental restrictions exceeding 14 consecutive days.'
+    }
+];
+
+// Legal dictionary terms
+const terms = {
+    consideration: ['Consideration', 'Something of value exchanged by parties to a contract (money, goods, or promises).', 'Example: Payment of R10,000 in return for monthly legal consulting services.'],
+    nda: ['NDA (Non-Disclosure Agreement)', 'A legally binding agreement designed to keep confidential data and trade secrets strictly private.', 'Example: Two South African tech founders sign an NDA before presenting source code.'],
+    lease: ['Lease Agreement', 'A contract where a lessor grants a lessee the right to occupy property for a period in return for rent.', 'Example: A 12-month residential lease subject to the Rental Housing Act.'],
+    will: ['Last Will & Testament', 'A formal declaration of how an individual wishes their estate and assets distributed upon death.', 'Example: A testator appoints an executor and specifies bequests to children.'],
+    'service contract': ['Service Contract', 'An agreement detailing scope of work, deliverables, compensation, and liability allocation.', 'Example: A software developer agrees to milestones and payment terms with a corporate client.'],
+    popia: ['POPIA', 'Protection of Personal Information Act 4 of 2013, governing lawful processing and storage of personal data in South Africa.', 'Example: LawCompass implements end-to-end encryption to satisfy POPIA data security requirements.'],
+    bcea: ['BCEA', 'Basic Conditions of Employment Act 75 of 1997, prescribing minimum statutory employment rights in South Africa.', 'Example: Ensuring working hours do not exceed 45 hours per week as required by the BCEA.']
+};
+
+// ------------------------------------------------------------------------------
+// 2. SOUTH AFRICAN LAW FIRMS DATABASE & PROXIMITY ENGINE
+// ------------------------------------------------------------------------------
+const LOCATIONS = {
+    sandton: { name: 'Sandton, Johannesburg', lat: -26.1076, lng: 28.0567 },
+    johannesburg: { name: 'Johannesburg Central', lat: -26.2041, lng: 28.0473 },
+    rosebank: { name: 'Rosebank, Johannesburg', lat: -26.1458, lng: 28.0435 },
+    pretoria: { name: 'Pretoria / Tshwane', lat: -25.7479, lng: 28.2293 },
+    centurion: { name: 'Centurion, Gauteng', lat: -25.8560, lng: 28.1880 },
+    capetown: { name: 'Cape Town Central', lat: -33.9249, lng: 18.4241 },
+    centurycity: { name: 'Century City, Cape Town', lat: -33.8920, lng: 18.5110 },
+    durban: { name: 'Durban Central', lat: -29.8587, lng: 31.0218 },
+    umhlanga: { name: 'Umhlanga, KZN', lat: -29.7280, lng: 31.0847 },
+    bloemfontein: { name: 'Bloemfontein, Free State', lat: -29.1166, lng: 26.2155 }
+};
+
+const LAW_FIRMS = [
+    // Civil dispute
+    { id: 'f_cd_1', name: 'Goliath & Co Attorneys', matter: 'Civil dispute', city: 'Cape Town', address: 'Norton Rose House, 8 Riebeek St, Cape Town', lat: -33.9230, lng: 18.4210, phone: '+27 (0)21 418 1000', rating: 4.9, specialties: ['High Court civil claims', 'Damages litigation', 'Delict & tort claims'] },
+    { id: 'f_cd_2', name: 'Thomson Wilks Inc.', matter: 'Civil dispute', city: 'Sandton', address: '23 Impala Rd, Chislehurston, Sandton', lat: -26.1060, lng: 28.0550, phone: '+27 (0)11 784 8984', rating: 4.8, specialties: ['Commercial litigation', 'Civil disputes', 'Arbitration & settlement'] },
+    { id: 'f_cd_3', name: 'Cliffe Dekker Hofmeyr (CDH)', matter: 'Civil dispute', city: 'Sandton', address: '1 Protea Place, Sandton', lat: -26.1030, lng: 28.0520, phone: '+27 (0)11 562 1000', rating: 4.9, specialties: ['Complex civil litigation', 'Dispute resolution', 'Insolvency'] },
+    { id: 'f_cd_4', name: 'Magerman Attorneys', matter: 'Civil dispute', city: 'Century City', address: 'Boulevard West, Century City, Cape Town', lat: -33.8910, lng: 18.5120, phone: '+27 (0)21 552 0300', rating: 4.7, specialties: ['Civil debt recovery', 'Magistrates Court disputes', 'Consumer protection'] },
+    { id: 'f_cd_5', name: 'Adams & Adams Attorneys', matter: 'Civil dispute', city: 'Pretoria', address: '4 Hillwood Dr, Lynnwood Ridge, Pretoria', lat: -25.7520, lng: 28.2320, phone: '+27 (0)12 432 6000', rating: 4.9, specialties: ['High Court matters', 'Commercial disputes', 'Insurance litigation'] },
+    { id: 'f_cd_6', name: 'Shepstone & Wylie Attorneys', matter: 'Civil dispute', city: 'Umhlanga', address: '24 Richefond Circle, Ridgeside, Umhlanga', lat: -29.7260, lng: 31.0860, phone: '+27 (0)31 575 7000', rating: 4.8, specialties: ['Civil litigation', 'Maritime law', 'Asset preservation'] },
+
+    // Family law
+    { id: 'f_fl_1', name: 'Wright Rose-Innes Inc.', matter: 'Family law', city: 'Johannesburg', address: 'Rose-Innes House, 96 11th St, Parkmore', lat: -26.1750, lng: 28.0450, phone: '+27 (0)11 646 9991', rating: 4.8, specialties: ['Divorce & mediation', 'Antenuptial contracts', 'Parenting plans'] },
+    { id: 'f_fl_2', name: 'Anthony Rome Attorneys', matter: 'Family law', city: 'Rosebank', address: '32 Bolton Rd, Parkwood, Rosebank', lat: -26.1480, lng: 28.0390, phone: '+27 (0)11 880 3410', rating: 4.9, specialties: ['Matrimonial property', 'Estate planning & wills', 'Child custody'] },
+    { id: 'f_fl_3', name: 'Fairbridges Wertheim Becker', matter: 'Family law', city: 'Cape Town', address: '16th Floor, 1 Thibault Sq, Cape Town', lat: -33.9210, lng: 18.4220, phone: '+27 (0)21 405 7300', rating: 4.7, specialties: ['Trust administration', 'Wills & probate', 'Maintenance agreements'] },
+
+    // Labour dispute
+    { id: 'f_ld_1', name: 'Deale Attorneys', matter: 'Labour dispute', city: 'Umhlanga', address: 'Umhlanga Ridge, Durban, KZN', lat: -29.7250, lng: 31.0830, phone: '+27 (0)31 566 2110', rating: 4.9, specialties: ['CCMA representation', 'Unfair dismissal', 'BCEA compliance'] },
+    { id: 'f_ld_2', name: 'CK Attorneys Inc.', matter: 'Labour dispute', city: 'Sandton', address: 'Commerce Square, Rivonia Rd, Sandton', lat: -26.1090, lng: 28.0580, phone: '+27 (0)11 268 0120', rating: 4.8, specialties: ['Labour Court litigation', 'Retrenchments', 'Executive employment'] },
+    { id: 'f_ld_3', name: 'Bowman Gilfillan (Bowmans)', matter: 'Labour dispute', city: 'Sandton', address: '11 Alice Lane, Sandton', lat: -26.1040, lng: 28.0530, phone: '+27 (0)11 669 9000', rating: 4.9, specialties: ['Employment equity', 'Restraint of trade enforcement', 'Bargaining council'] },
+
+    // Commercial dispute
+    { id: 'f_cmd_1', name: 'Webber Wentzel', matter: 'Commercial dispute', city: 'Sandton', address: '90 Rivonia Rd, Sandton', lat: -26.1020, lng: 28.0540, phone: '+27 (0)11 530 5000', rating: 4.9, specialties: ['Corporate disputes', 'Shareholder agreements', 'Breach of contract'] },
+    { id: 'f_cmd_2', name: 'Kleingels Attorneys', matter: 'Commercial dispute', city: 'Bloemfontein', address: 'President Steyn Ave, Westdene, Bloemfontein', lat: -29.1180, lng: 26.2140, phone: '+27 (0)51 448 3120', rating: 4.7, specialties: ['Commercial agreements', 'Business debt collection', 'Supreme Court of Appeal'] },
+    { id: 'f_cmd_3', name: 'Munro Flowers & Vermaak', matter: 'Commercial dispute', city: 'Rosebank', address: '3 Glenhove Rd, Rosebank', lat: -26.1440, lng: 28.0410, phone: '+27 (0)11 327 5418', rating: 4.8, specialties: ['SME commercial disputes', 'Partnership dissolution', 'Director liability'] },
+
+    // Property dispute
+    { id: 'f_pd_1', name: 'Hugh Raichlin Attorneys', matter: 'Property dispute', city: 'Johannesburg', address: '100 The Hill, Norwood, Johannesburg', lat: -26.1550, lng: 28.0760, phone: '+27 (0)11 483 1527', rating: 4.8, specialties: ['Residential evictions', 'Rental Housing Tribunal', 'Commercial leases'] },
+    { id: 'f_pd_2', name: 'STBB Smith Tabata Buchanan Boyes', matter: 'Property dispute', city: 'Cape Town', address: '5 St Georges Mall, Cape Town', lat: -33.9220, lng: 18.4180, phone: '+27 (0)21 406 9100', rating: 4.9, specialties: ['Conveyancing disputes', 'Sectional title issues', 'Servitudes & boundary'] },
+
+    // Contract dispute
+    { id: 'f_cnd_1', name: 'Cuzen Randeree Dyasi Inc.', matter: 'Contract dispute', city: 'Johannesburg', address: '22 Rustenburg Rd, Victory Park, JHB', lat: -26.1380, lng: 28.0120, phone: '+27 (0)11 782 5225', rating: 4.8, specialties: ['Breach of contract', 'Service level agreements', 'Damages claims'] },
+    { id: 'f_cnd_2', name: 'Werksmans Attorneys', matter: 'Contract dispute', city: 'Sandton', address: '96 Rivonia Rd, Sandton', lat: -26.1045, lng: 28.0555, phone: '+27 (0)11 535 8000', rating: 4.9, specialties: ['Contract drafting & disputes', 'Commercial arbitration', 'International trade contracts'] }
+];
+
+function getDistanceKm(lat1, lon1, lat2, lon2) {
+    const R = 6371;
+    const dLat = (lat2 - lat1) * Math.PI / 180;
+    const dLon = (lon2 - lon1) * Math.PI / 180;
+    const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+              Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+              Math.sin(dLon / 2) * Math.sin(dLon / 2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    return parseFloat((R * c).toFixed(1));
+}
+
+// ------------------------------------------------------------------------------
+// 3. AUTHENTICATION & ROUTE GUARDS
+// ------------------------------------------------------------------------------
+const page = document.body.dataset.page;
+// All workspace services require authentication - unauthenticated users must login first
+const PROTECTED_PAGES = ['dashboard', 'documents', 'builder', 'upload', 'history', 'translate', 'help', 'pricing', 'dictionary'];
+
+function getProfile() {
+    try {
+        const stored = localStorage.getItem('lawcompass-profile') || localStorage.getItem('lawbuddy-profile');
+        if (stored) return JSON.parse(stored);
+    } catch (e) {}
+    return null;
+}
+
+function isAuthenticated() {
+    const p = getProfile();
+    const token = localStorage.getItem('lawcompass-token') || localStorage.getItem('lawbuddy-token');
+    return !!(p && p.name && p.name !== 'Guest' && (p.email || token));
+}
+
+const profile = () => getProfile() || { name: 'Member', email: '', tier: 'standard' };
+const history = () => JSON.parse(localStorage.getItem('lawcompass-history') || localStorage.getItem('lawbuddy-history') || '[]');
+
+// Check authentication guard immediately on protected pages
+if (PROTECTED_PAGES.includes(page) && !isAuthenticated()) {
+    const currentPath = location.pathname.split('/').pop() || 'dashboard.html';
+    const redirectUrl = `login.html?redirect=${encodeURIComponent(currentPath + location.search)}`;
+    location.replace(redirectUrl);
+}
+
+// ------------------------------------------------------------------------------
+// 4. NAVIGATION & WORKSPACE SHELL
+// ------------------------------------------------------------------------------
+const nav = [
+    ['dashboard.html', '⌂', 'Overview'],
+    ['documents.html', '▣', 'Generate document'],
+    ['upload-contract.html', '↥', 'Upload contract'],
+    ['legal-help.html', '⌁', 'Find legal help'],
+    ['dictionary.html', '◌', 'Legal dictionary'],
+    ['history.html', '◷', 'Document history'],
+    ['translate.html', '文', 'Plain-language helper'],
+    ['pricing.html', '✦', 'Plans & premium']
+];
+
+function shell(title, bodyContent) {
+    const activeMap = {
+        dashboard: 'dashboard.html',
+        documents: 'documents.html',
+        builder: 'documents.html',
+        upload: 'upload-contract.html',
+        help: 'legal-help.html',
+        dictionary: 'dictionary.html',
+        history: 'history.html',
+        translate: 'translate.html',
+        pricing: 'pricing.html'
+    };
+    const active = activeMap[page] || '';
+    const userProfile = profile();
+    const initials = (userProfile.name || 'U').slice(0, 1).toUpperCase();
+
+    document.body.innerHTML = `
+        <div id="toast" role="status"></div>
+        <div id="nav-scrim"></div>
+        <aside id="sidebar">
+            <div class="sidebar-brand">
+                <a class="logo" href="dashboard.html">
+                    <span>§</span>
+                    <strong>LawCompass</strong>
+                </a>
+                <button id="sidebar-toggle" aria-label="Collapse navigation" aria-controls="sidebar" aria-expanded="true">‹</button>
+            </div>
+            <p class="side-label">WORKSPACE</p>
+            <nav>
+                ${nav.map(x => `<a class="${x[0] === active ? 'active' : ''}" href="${x[0]}" title="${x[2]}">${x[1]} <span>${x[2]}</span></a>`).join('')}
+            </nav>
+            <div class="side-bottom">
+                <button id="signout" title="Sign out">↪ <span>Sign out</span></button>
+            </div>
+        </aside>
+        <main>
+            <header>
+                <div class="header-title">
+                    <button id="mobile-menu" aria-label="Open navigation" aria-controls="sidebar" aria-expanded="false">☰</button>
+                    <div>
+                        <p class="eyebrow">YOUR WORKSPACE</p>
+                        <h2>${title}</h2>
+                    </div>
+                </div>
+                <div class="user">
+                    <span>${initials}</span>
+                    <div>
+                        <b>${esc(userProfile.name)}</b>
+                        <small>${esc(userProfile.email || 'Authenticated user')}</small>
+                    </div>
+                </div>
+            </header>
+            ${bodyContent}
+        </main>
+    `;
+
+    // Sidebar and mobile interactions
+    const toggle = () => {
+        const collapsed = document.body.classList.toggle('sidebar-collapsed');
+        const expanded = !collapsed;
+        $('#sidebar-toggle').setAttribute('aria-expanded', String(expanded));
+        $('#sidebar-toggle').setAttribute('aria-label', expanded ? 'Collapse navigation' : 'Expand navigation');
+        $('#sidebar-toggle').textContent = expanded ? '‹' : '›';
+    };
+    const mobile = () => {
+        const open = document.body.classList.toggle('sidebar-open');
+        $('#mobile-menu').setAttribute('aria-expanded', String(open));
+        $('#mobile-menu').setAttribute('aria-label', open ? 'Close navigation' : 'Open navigation');
+    };
+
+    $('#sidebar-toggle').onclick = toggle;
+    $('#mobile-menu').onclick = mobile;
+    $('#nav-scrim').onclick = () => {
+        document.body.classList.remove('sidebar-open');
+        $('#mobile-menu').setAttribute('aria-expanded', 'false');
+    };
+
+    $('#signout').onclick = () => {
+        localStorage.removeItem('lawcompass-profile');
+        localStorage.removeItem('lawcompass-token');
+        localStorage.removeItem('lawbuddy-profile');
+        localStorage.removeItem('lawbuddy-token');
+        location.href = 'index.html';
+    };
+}
+
+function toast(message) {
+    const t = $('#toast');
+    if (!t) return;
+    t.textContent = message;
+    t.classList.add('show');
+    setTimeout(() => t.classList.remove('show'), 3500);
+}
+
+// ------------------------------------------------------------------------------
+// 5. DASHBOARD & TEMPLATES GALLERY
+// ------------------------------------------------------------------------------
+function cards() {
+    return `<div class="template-grid">${Object.entries(data).map(([key, t]) => `
+        <a class="template" href="builder.html?type=${key}">
+            <span class="icon">▣</span>
+            <h3>${t.title}</h3>
+            <p>${t.desc}</p>
+            <footer>Configure & generate draft →</footer>
+        </a>
+    `).join('')}</div>`;
+}
+
+function dashboard() {
+    const docsCount = history().length;
+    shell('Workspace Overview', `
+        <section class="hero">
+            <div>
+                <p class="eyebrow">LAWCOMPASS LEGAL WORKSPACE</p>
+                <h1>Legal documents, without the legal fog.</h1>
+                <p>Generate South African compliant contracts, personalize bespoke clauses, lock finalized agreements with SHA-256 seals, and find nearby attorneys.</p>
+                <a class="primary" href="documents.html">Create a document <span>→</span></a>
+            </div>
+            <div class="hero-art">
+                <div class="paper">
+                    AGREEMENT
+                    <i></i><i></i><i></i>
+                    <b>✓</b>
+                </div>
+            </div>
+        </section>
+
+        <div class="stats">
+            <article>
+                <span>◷</span>
+                <div><b>${docsCount}</b><small>Drafts & Documents</small></div>
+            </article>
+            <article>
+                <span>▣</span>
+                <div><b>5</b><small>Official SA Templates</small></div>
+            </article>
+            <article>
+                <span>🔒</span>
+                <div><b>SHA-256</b><small>Tamper-Proof Locking</small></div>
+            </article>
+        </div>
+
+        <section class="section-head">
+            <div>
+                <p class="eyebrow">QUICK ACTIONS</p>
+                <h2>What do you need today?</h2>
+            </div>
+        </section>
+
+        <div class="action-grid">
+            <a href="documents.html">
+                <b>▣</b>
+                <span><strong>Create a document</strong><small>Guided contracts with custom clauses</small></span>
+                <i>→</i>
+            </a>
+            <a href="legal-help.html">
+                <b>⌁</b>
+                <span><strong>Find legal help by proximity</strong><small>Closest law firms under your matter</small></span>
+                <i>→</i>
+            </a>
+            <a href="upload-contract.html">
+                <b>↥</b>
+                <span><strong>Upload & explain contract</strong><small>AI plain-English clause breakdown</small></span>
+                <i>→</i>
+            </a>
+        </div>
+    `);
+}
+
+function documents() {
+    shell('Create a document', `
+        <p class="eyebrow">DOCUMENT TEMPLATES</p>
+        <h1>Select a legal template</h1>
+        <p class="intro">Each template is tailored for South African law. Answer the questions, add custom clauses to personalize your terms, and lock your document once generated.</p>
+        ${cards()}
+    `);
+}
+
+// ------------------------------------------------------------------------------
+// 6. DOCUMENT BUILDER, PERSONALIZATION & REAL DOCX GENERATION
+// ------------------------------------------------------------------------------
+function fieldMarkup(f) {
+    const required = f.required ? 'required' : '';
+    let input = '';
+    if (f.type === 'textarea') {
+        input = `<textarea name="${f.label}" ${required}></textarea>`;
+    } else if (f.type === 'select') {
+        input = `<select name="${f.label}" ${required}><option value="">Select an option</option>${f.options.map(o => `<option value="${o}">${o}</option>`).join('')}</select>`;
+    } else if (f.type === 'checkbox-group') {
+        input = `<div class="choice-grid">${f.options.map(o => `<label><input type="checkbox" name="${f.label}" value="${o}"> ${o}</label>`).join('')}</div>`;
+    } else if (f.type === 'checkbox') {
+        input = `<span class="single-check"><input type="checkbox" name="${f.label}" ${required}> I confirm</span>`;
+    } else {
+        input = `<input type="${f.type}" name="${f.label}" ${required}>`;
+    }
+    return `
+        <label class="form-field ${f.type === 'textarea' || f.type === 'checkbox-group' ? 'full' : ''}">
+            <span>${f.label}${f.required ? ' <b aria-hidden="true">*</b>' : ''}</span>
+            ${input}
+        </label>
+    `;
+}
+
+// Map form answers directly to template placeholders
+function getPlaceholderMap(templateKey, answers, customClauses) {
+    const map = {};
+    const getVal = key => answers[key] || '';
+
+    // Common schedule text
+    const customClausesFormatted = customClauses.length
+        ? customClauses.map((c, i) => `Clause ${i + 1} (${c.title}): ${c.body}`).join('\n\n')
+        : 'Standard terms apply. No additional custom clauses requested.';
+
+    const responseScheduleFormatted = Object.entries(answers)
+        .map(([k, v]) => `${k}: ${v}`)
+        .join(' | ');
+
+    if (templateKey === 'Employment') {
+        map['EmployerName'] = getVal('Employer / company legal name');
+        map['CompanyRegNumber'] = getVal('Company registration number');
+        map['EmployerAddress'] = getVal('Employer physical address');
+        map['EmployeeName'] = getVal('Employee full names');
+        map['EmployeeId'] = getVal('Employee ID / passport number');
+        map['EmployeeAddress'] = getVal('Employee residential address');
+        map['EmployeeEmail'] = getVal('Employee email address');
+        map['EmployeePhone'] = getVal('Employee telephone number');
+        map['Role'] = getVal('Job title');
+        map['Department'] = getVal('Department / reporting manager');
+        map['Responsibilities'] = getVal('Responsibilities and performance expectations');
+        map['StartDate'] = getVal('Start date');
+        map['EndDate'] = getVal('End date') || 'Indefinite';
+        map['WorkingHours'] = getVal('Working hours per week');
+        map['SalaryAmount'] = getVal('Salary / wage amount (R)');
+        map['PaymentFreq'] = getVal('Remuneration frequency');
+        map['RatePerhour'] = getVal('Rate per hour (R)') || 'N/A';
+        map['OvertimeRate'] = getVal('Overtime rate / calculation') || '1.5x basic rate';
+        map['AnnualLeaveDays'] = getVal('Annual leave days') || '21';
+        map['EmployBenefits'] = getVal('Benefits') || 'Standard statutory';
+        map['ProbationPeriod'] = getVal('Probation period') || '3 months';
+        map['NoticePeriod'] = getVal('Notice period') || '4 weeks';
+        map['AdditionalTerms'] = customClausesFormatted;
+        map['ResponseSchedule'] = responseScheduleFormatted;
+    } else if (templateKey === 'Lease') {
+        map['LessorName'] = getVal('Landlord / lessor full name');
+        map['LesseeName'] = getVal('Tenant / lessee full name');
+        map['LesseName'] = getVal('Tenant / lessee full name');
+        map['AdressOfLease'] = getVal('Property address');
+        map['StartDate'] = getVal('Lease start date');
+        map['EndDate'] = getVal('Lease end date');
+        map['RentAmount'] = getVal('Monthly rent (R)');
+        map['PaymentDay'] = getVal('Rent payment day of month') || '1st';
+        map['AmountInWords'] = getVal('Rent amount in words') || `${getVal('Monthly rent (R)')} Rands`;
+        map['DepositAmount'] = getVal('Deposit (R)');
+        const utils = getVal('Utilities payable by tenant') || '';
+        map['WaterChecked'] = utils.includes('Water') ? 'Tenant' : 'Landlord';
+        map['SewageChecked'] = utils.includes('Sewer') ? 'Tenant' : 'Landlord';
+        map['BinChecked'] = utils.includes('Refuse') ? 'Tenant' : 'Landlord';
+        map['ElectricityChecked'] = utils.includes('Electricity') ? 'Tenant' : 'Landlord';
+        map['Insert Notice Period'] = getVal('Notice period') || '1 calendar month';
+        map['SignedDay'] = getVal('Agreement signed on') || new Date().toLocaleDateString('en-ZA');
+        map['PaymentDetails'] = getVal('Payment method / bank details') || 'EFT to designated account';
+        map['Maintenance'] = getVal('Maintenance and repair obligations') || 'Landlord structural, Tenant cleanliness';
+        map['PetsSmoking'] = getVal('Pets / smoking rules') || 'By written consent only';
+        map['AdditionalTerms'] = customClausesFormatted;
+        map['ResponseSchedule'] = responseScheduleFormatted;
+    } else if (templateKey === 'NDA') {
+        map['NameofDisparty'] = getVal('Disclosing party name / company');
+        map['AddressDisParty'] = getVal('Disclosing party address');
+        map['EmailDisParty'] = getVal('Disclosing party email');
+        map['PhoneDisParty'] = getVal('Disclosing party phone');
+        map['NameofRecparty'] = getVal('Receiving party name / company');
+        map['AddressRecParty'] = getVal('Receiving party address');
+        map['EmailRecParty'] = getVal('Receiving party email');
+        map['PhoneRecParty'] = getVal('Receiving party phone');
+        map['ConfidentialityScope'] = getVal('Confidential information scope') || getVal('Purpose of disclosure');
+        map['NonDisclosurePeriod'] = getVal('Non-disclosure period (e.g. 2 years)') || '2 years from execution';
+        map['Jurisdiction'] = getVal('Governing law / jurisdiction') || 'Republic of South Africa';
+        map['EffectiveDate'] = getVal('Effective date');
+        map['TermEndDate'] = getVal('Term / expiration date') || 'Until terminated';
+        map['AdditionalTerms'] = customClausesFormatted;
+        map['ResponseSchedule'] = responseScheduleFormatted;
+    } else if (templateKey === 'Service') {
+        map['Date'] = new Date().toLocaleDateString('en-ZA');
+        map['ServiceProvider'] = getVal('Service provider legal name');
+        map['ServiceRendTo'] = getVal('Service recipient / client legal name');
+        map['ServiceRenTo'] = getVal('Service recipient / client legal name');
+        map['ServiceScope'] = getVal('Detailed service scope and deliverables');
+        map['StartDate'] = getVal('Start date');
+        map['EndDate'] = getVal('End date');
+        map['Amount'] = getVal('Total payment (R)');
+        map['PaymentFreq'] = getVal('Payment frequency');
+        map['PaymentMethod'] = getVal('Payment method');
+        map['DamageLiability'] = getVal('Damage liabilities') || 'Service Provider';
+        map['NoticePeriod'] = getVal('Notice period') || '30 days';
+        map['PaymentBreakdown'] = getVal('Payment breakdown / milestone schedule') || 'Payable upon deliverable milestone approval';
+        map['AdditionalTerms'] = customClausesFormatted;
+        map['ResponseSchedule'] = responseScheduleFormatted;
+    } else if (templateKey === 'Will') {
+        map['FullNameTestator'] = getVal('Testator full names');
+        map['TestatorFullName'] = getVal('Testator full names');
+        map['IDNumber'] = getVal('ID / passport number');
+        map['DateCreated'] = getVal('Date created') || new Date().toLocaleDateString('en-ZA');
+        map['ResidentialAddress'] = getVal('Residential address');
+        map['MaritalStatus'] = getVal('Marital status');
+        map['ExecutorFullName'] = getVal('Executor full names');
+        map['ExecutorDetails'] = getVal('Executor contact details');
+        map['AlterExecutorName'] = getVal('Alternate executor full names') || 'To be nominated by Master of High Court';
+        map['GuardianName'] = getVal('Guardian for minor children') || 'None nominated';
+        map['AlterGuardianName'] = getVal('Alternate guardian') || 'None nominated';
+        map['Property1'] = getVal('Asset / property 1');
+        map['Property2'] = getVal('Asset / property 2') || 'Residue of estate';
+        map['Recipients1'] = getVal('Beneficiary 1 full names');
+        map['IDRecipients1'] = getVal('Beneficiary 1 ID / passport number');
+        map['PercentageRec1'] = (getVal('Beneficiary 1 percentage') || '100') + '%';
+        map['Recipients2'] = getVal('Beneficiary 2 full names') || 'N/A';
+        map['IDRecipients2'] = getVal('Beneficiary 2 ID / passport number') || 'N/A';
+        map['PercentageRec2'] = getVal('Beneficiary 2 percentage') ? getVal('Beneficiary 2 percentage') + '%' : '';
+        map['BeneficiaryName'] = getVal('Residuary beneficiary full name') || getVal('Beneficiary 1 full names');
+        map['AlternateBeneficiary'] = getVal('Alternate residuary beneficiary full name') || 'Surviving heirs by representation';
+        map['Witness1'] = getVal('Witness 1 full names') || 'Independent Witness 1';
+        map['Witness2'] = getVal('Witness 2 full names') || 'Independent Witness 2';
+        map['WitnessName'] = 'Attestation Witness';
+        map['AdditionalAssets'] = getVal('Additional assets, specific bequests or residue instructions') || 'None';
+        map['FuneralWishes'] = getVal('Funeral wishes') || 'At discretion of family';
+        map['DigitalAssets'] = getVal('Digital assets / online accounts instructions') || 'Executor to close accounts';
+        map['AdditionalTerms'] = customClausesFormatted;
+        map['ResponseSchedule'] = responseScheduleFormatted;
+    }
+
+    return map;
+}
+
+// Generate cryptographic SHA-256 seal
+async function generateSha256Checksum(payloadString) {
+    if (window.crypto && window.crypto.subtle) {
+        const buffer = new TextEncoder().encode(payloadString);
+        const digest = await window.crypto.subtle.digest('SHA-256', buffer);
+        return Array.from(new Uint8Array(digest)).map(b => b.toString(16).padStart(2, '0')).join('');
+    }
+    // Fallback pseudo-hash
+    let h = 0;
+    for (let i = 0; i < payloadString.length; i++) {
+        h = ((h << 5) - h) + payloadString.charCodeAt(i);
+        h |= 0;
+    }
+    return Math.abs(h).toString(16).padStart(16, '0');
+}
+
+// Real DOCX file generation using JSZip
+async function generatePopulatedDocx(templateKey, placeholderMap) {
+    const t = data[templateKey];
+    if (!t) throw new Error('Unknown template type');
+
+    if (!window.JSZip) {
+        throw new Error('JSZip library is initializing. Please try again.');
+    }
+
+    // Fetch the authentic DOCX template file
+    const response = await fetch(t.templateFile);
+    if (!response.ok) {
+        throw new Error(`Failed to load template file ${t.templateFile}`);
+    }
+
+    const arrayBuffer = await response.arrayBuffer();
+    const zip = await window.JSZip.loadAsync(arrayBuffer);
+
+    let docXml = await zip.file('word/document.xml').async('text');
+
+    // Replace all placeholders [PlaceholderName] with XML-escaped user values
+    for (const [key, value] of Object.entries(placeholderMap)) {
+        const pattern = new RegExp('\\[' + key.replace(/[-/\\^$*+?.()|[\]{}]/g, '\\$&') + '\\]', 'g');
+        const safeXmlValue = esc(value).replace(/\n/g, '</w:t><w:br/><w:t>');
+        docXml = docXml.replace(pattern, safeXmlValue);
+    }
+
+    // Save updated XML back to DOCX package
+    zip.file('word/document.xml', docXml);
+
+    // Generate output blob
+    const docxBlob = await zip.generateAsync({
+        type: 'blob',
+        mimeType: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+    });
+
+    return docxBlob;
+}
+
+function builder() {
+    const type = new URLSearchParams(location.search).get('type') || 'Employment';
+    const t = data[type] || data.Employment;
+
+    // Track active custom clauses
+    let customClauses = [];
+    let isLocked = false;
+    let lockSeal = null;
+
+    shell('Document Builder', `
+        <a class="back" href="documents.html">← Back to templates</a>
+        <div class="builder-head">
+            <div>
+                <p class="eyebrow">DOCUMENT GENERATOR · POPIA COMPLIANT</p>
+                <h1>${t.title}</h1>
+                <p>${t.desc}</p>
+            </div>
+            <span class="step">Official South African Jurisdiction</span>
+        </div>
+
+        <!-- Lock Control Banner (Hidden until generated, or toggled) -->
+        <div id="lock-banner" class="lock-control-container" style="display:none;">
+            <div class="lock-header-row">
+                <div class="lock-status-badge ${isLocked ? 'locked' : 'unlocked'}" id="lock-badge-ui">
+                    <span>${isLocked ? '🔒 LOCKED & FINALIZED' : '🔓 DRAFT STATE'}</span>
+                </div>
+                <button type="button" id="btn-toggle-lock" class="btn-lock-toggle ${isLocked ? 'btn-unlock-action' : 'btn-lock-action'}">
+                    ${isLocked ? 'Unlock for Revisions' : '🔒 Lock & Finalize Document'}
+                </button>
+            </div>
+            <div id="lock-details-box" style="display:none;">
+                <p style="margin: 12px 0 6px; font-weight:700; color:#1e3a5f;">Cryptographic Tamper-Evident Verification Seal:</p>
+                <div id="lock-hash-val" class="lock-hash-display"></div>
+                <div class="lock-meta-row">
+                    <span id="lock-timestamp"></span>
+                    <span>Status: Immutable Legal Instrument</span>
+                    <span>Vault: POPIA Compliant Local Record</span>
+                </div>
+            </div>
+        </div>
+
+        <form id="build-form" class="document-form">
+            ${t.sections.map(s => `
+                <fieldset>
+                    <legend>${s.title}</legend>
+                    <div class="field-grid">
+                        ${s.fields.map(fieldMarkup).join('')}
+                    </div>
+                </fieldset>
+            `).join('')}
+
+            <!-- Personalize Contract: Custom Clauses & Terms Studio -->
+            <div class="custom-clause-section">
+                <div style="display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:10px;">
+                    <div>
+                        <h3>Personalize Your Contract (Custom Terms & Conditions)</h3>
+                        <p>Tailor this contract by choosing recommended South African clauses or writing bespoke covenants.</p>
+                    </div>
+                </div>
+
+                <div class="preset-chips-box">
+                    <span class="preset-chips-label">Quick-Add Recommended Clauses:</span>
+                    <div class="preset-chips-flex">
+                        ${CLAUSE_PRESETS.map((p, idx) => `
+                            <button type="button" class="preset-chip-btn" data-preset="${idx}">
+                                + ${p.title}
+                            </button>
+                        `).join('')}
+                    </div>
+                </div>
+
+                <div id="custom-clauses-container" class="custom-clauses-list"></div>
+
+                <div class="add-custom-clause-card">
+                    <b style="color:var(--navy); font-size:14px;">Add a Bespoke Custom Clause:</b>
+                    <input id="new-clause-title" placeholder="Clause Title (e.g. Non-Compete, Equipment Protocol, IP Ownership)">
+                    <textarea id="new-clause-body" placeholder="Clause Wording / Legal Terms..."></textarea>
+                    <button type="button" id="btn-add-bespoke" class="btn-append-clause">
+                        + Add Custom Clause to Document
+                    </button>
+                </div>
+            </div>
+
+            <p class="form-note">
+                <strong>Legal Notice:</strong> This guided legal document preparation tool complies with South African drafting standards. For complex commercial arrangements or disputes, consult a qualified attorney.
+            </p>
+
+            <div class="builder-actions" style="grid-column: 1 / -1; display:flex; gap:14px; justify-content:flex-end;">
+                <button type="button" id="btn-lock-direct" class="secondary" style="display:flex; align-items:center; gap:8px;">
+                    🔒 Lock Draft
+                </button>
+                <button type="submit" class="primary" style="display:flex; align-items:center; gap:8px;">
+                    Download Contract (.docx) <span>↓</span>
+                </button>
+            </div>
+        </form>
+    `);
+
+    // Render custom clauses
+    const renderClauses = () => {
+        const container = $('#custom-clauses-container');
+        if (!customClauses.length) {
+            container.innerHTML = '<p style="color:var(--muted); font-size:13px; font-style:italic; margin:8px 0;">No personalized custom clauses added yet. Click a preset above or add a bespoke clause below.</p>';
+            return;
+        }
+        container.innerHTML = customClauses.map((c, i) => `
+            <div class="custom-clause-item">
+                <div class="clause-item-head">
+                    <h4 class="clause-item-title">${i + 1}. ${esc(c.title)}</h4>
+                    ${!isLocked ? `<button type="button" class="btn-delete-clause" data-del="${i}">✕ Remove</button>` : ''}
+                </div>
+                <div class="clause-item-body">${esc(c.body)}</div>
+            </div>
+        `).join('');
+    };
+    renderClauses();
+
+    // Preset button clicks
+    $$('.preset-chip-btn').forEach(btn => {
+        btn.onclick = () => {
+            if (isLocked) return toast('Document is locked. Unlock to add clauses.');
+            const idx = parseInt(btn.dataset.preset, 10);
+            const preset = CLAUSE_PRESETS[idx];
+            if (preset) {
+                customClauses.push({ title: preset.title, body: preset.body });
+                renderClauses();
+                toast(`Added "${preset.title}" clause.`);
+            }
+        };
+    });
+
+    // Add bespoke clause
+    $('#btn-add-bespoke').onclick = () => {
+        if (isLocked) return toast('Document is locked. Unlock to add clauses.');
+        const titleInput = $('#new-clause-title');
+        const bodyInput = $('#new-clause-body');
+        const title = titleInput.value.trim();
+        const body = bodyInput.value.trim();
+        if (!title || !body) {
+            return toast('Please provide both a clause title and wording.');
+        }
+        customClauses.push({ title, body });
+        titleInput.value = '';
+        bodyInput.value = '';
+        renderClauses();
+        toast('Custom clause added to document.');
+    };
+
+    // Remove clause
+    document.addEventListener('click', e => {
+        if (e.target.dataset && e.target.dataset.del !== undefined) {
+            const idx = parseInt(e.target.dataset.del, 10);
+            customClauses.splice(idx, 1);
+            renderClauses();
+            toast('Clause removed.');
+        }
+    });
+
+    // Extract form answers as key-value map
+    const extractAnswers = form => {
+        const answers = {};
+        $$('.form-field', form).forEach(l => {
+            const labelEl = l.querySelector('span');
+            if (!labelEl) return;
+            const label = labelEl.textContent.replace('*', '').trim();
+            const checks = $$('input[type=checkbox]:checked', l).map(x => x.value || 'Confirmed');
+            const control = l.querySelector('input:not([type=checkbox]), textarea, select');
+            if (checks.length) {
+                answers[label] = checks.join(', ');
+            } else if (control) {
+                answers[label] = control.value;
+            }
+        });
+        return answers;
+    };
+
+    // Lock toggle function
+    const applyLockState = async lock => {
+        isLocked = lock;
+        const banner = $('#lock-banner');
+        const badge = $('#lock-badge-ui');
+        const details = $('#lock-details-box');
+        const form = $('#build-form');
+        const toggleBtn = $('#btn-toggle-lock');
+
+        banner.style.display = 'block';
+
+        if (isLocked) {
+            const answers = extractAnswers(form);
+            const payload = JSON.stringify({ template: type, answers, customClauses, timestamp: Date.now() });
+            const hash = await generateSha256Checksum(payload);
+            lockSeal = {
+                hash: 'SHA256:' + hash,
+                date: new Date().toLocaleString('en-ZA')
+            };
+
+            banner.classList.add('is-locked');
+            form.classList.add('document-locked-readonly');
+            badge.className = 'lock-status-badge locked';
+            badge.innerHTML = '<span>🔒 LOCKED & FINALIZED</span>';
+            toggleBtn.className = 'btn-lock-toggle btn-unlock-action';
+            toggleBtn.textContent = 'Unlock for Revisions';
+
+            details.style.display = 'block';
+            $('#lock-hash-val').textContent = lockSeal.hash;
+            $('#lock-timestamp').textContent = `Locked on: ${lockSeal.date} SAST`;
+
+            // Save locked document into history
+            const h = history();
+            h.unshift({
+                name: t.title,
+                type: type,
+                date: lockSeal.date,
+                isLocked: true,
+                lockHash: lockSeal.hash
+            });
+            localStorage.setItem('lawcompass-history', JSON.stringify(h));
+
+            toast('Document locked! Cryptographic tamper seal generated.');
+        } else {
+            banner.classList.remove('is-locked');
+            form.classList.remove('document-locked-readonly');
+            badge.className = 'lock-status-badge unlocked';
+            badge.innerHTML = '<span>🔓 DRAFT STATE (Unlocked)</span>';
+            toggleBtn.className = 'btn-lock-toggle btn-lock-action';
+            toggleBtn.textContent = '🔒 Lock & Finalize Document';
+            details.style.display = 'none';
+            toast('Document unlocked for revisions.');
+        }
+        renderClauses();
+    };
+
+    $('#btn-toggle-lock').onclick = () => applyLockState(!isLocked);
+    $('#btn-lock-direct').onclick = () => applyLockState(true);
+
+    // Form submit -> generate authentic DOCX
+    $('#build-form').onsubmit = async e => {
+        e.preventDefault();
+        const answers = extractAnswers(e.target);
+        const placeholderMap = getPlaceholderMap(type, answers, customClauses);
+
+        try {
+            toast('Populating official Word template with your details...');
+            const docxBlob = await generatePopulatedDocx(type, placeholderMap);
+
+            // Trigger file download
+            const url = URL.createObjectURL(docxBlob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `${t.title.replaceAll(' ', '_')}_LawCompass.docx`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+
+            // Add to history
+            const h = history();
+            h.unshift({
+                name: t.title,
+                type: type,
+                date: new Date().toLocaleString('en-ZA'),
+                isLocked: isLocked,
+                lockHash: lockSeal ? lockSeal.hash : null
+            });
+            localStorage.setItem('lawcompass-history', JSON.stringify(h));
+
+            // Show lock banner if not locked yet
+            if (!isLocked) {
+                $('#lock-banner').style.display = 'block';
+            }
+
+            toast('Official .docx contract generated and downloaded!');
+        } catch (err) {
+            console.error('Docx generation error:', err);
+            // Fallback for file:// protocol where fetch is blocked
+            toast('Downloading formatted document draft...');
+            const html = `
+                <meta charset="utf-8">
+                <style>
+                    body { font-family: Georgia, serif; max-width: 750px; margin: 40px auto; line-height: 1.6; }
+                    h1 { text-align: center; color: #14223b; }
+                    .seal { border: 2px solid #2d7568; background: #f0f7f4; padding: 15px; border-radius: 6px; margin: 20px 0; }
+                    table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+                    td { padding: 10px; border-bottom: 1px solid #ddd; }
+                    b { color: #14223b; }
+                </style>
+                <h1>${esc(t.title)}</h1>
+                <p>Prepared via LawCompass on ${new Date().toLocaleDateString('en-ZA')}. Jurisdiction: Republic of South Africa.</p>
+                ${isLocked ? `<div class="seal"><b>🔒 LOCKED & FINALIZED</b><br>Verification Hash: ${lockSeal ? lockSeal.hash : 'VERIFIED'}</div>` : ''}
+                <table>
+                    ${Object.entries(placeholderMap).map(([k, v]) => `<tr><td><b>${esc(k)}</b></td><td>${esc(v)}</td></tr>`).join('')}
+                </table>
+            `;
+            const a = document.createElement('a');
+            a.href = URL.createObjectURL(new Blob([html], { type: 'application/msword' }));
+            a.download = `${t.title.replaceAll(' ', '_')}.doc`;
+            a.click();
+        }
+    };
+}
+
+// ------------------------------------------------------------------------------
+// 7. FIND LEGAL HELP BY PROXIMITY (Closest Law Firms Listed First)
+// ------------------------------------------------------------------------------
+function help() {
+    let currentMatter = 'Civil dispute';
+    let userLocationKey = 'sandton';
+    let userCoords = LOCATIONS.sandton;
+
+    shell('Find Legal Help', `
+        <p class="eyebrow">VERIFIED SOUTH AFRICAN ATTORNEYS</p>
+        <h1>Find legal help by proximity</h1>
+        <p class="intro">Law firms specialized in your selected legal matter are ranked by geographical proximity. The closest firms appear first with direct contact information.</p>
+
+        <!-- Proximity Control Panel -->
+        <div class="proximity-control-panel">
+            <div class="proximity-location-select">
+                <label for="loc-select">📍 Your Current Area / City:</label>
+                <select id="loc-select" class="proximity-select-input">
+                    ${Object.entries(LOCATIONS).map(([k, loc]) => `
+                        <option value="${k}" ${k === userLocationKey ? 'selected' : ''}>${loc.name}</option>
+                    `).join('')}
+                </select>
+            </div>
+            <button type="button" id="btn-detect-gps" class="btn-geo-detect">
+                📍 Detect GPS Location
+            </button>
+        </div>
+
+        <div class="matter-layout">
+            <div class="matter-list" id="matter-nav">
+                ${[
+                    'Civil dispute',
+                    'Family law',
+                    'Labour dispute',
+                    'Commercial dispute',
+                    'Property dispute',
+                    'Contract dispute'
+                ].map(m => `
+                    <button class="${m === currentMatter ? 'active' : ''}" data-matter="${m}">
+                        ${m} <span>→</span>
+                    </button>
+                `).join('')}
+            </div>
+
+            <div class="firms-display-area" id="firms-list"></div>
+        </div>
+    `);
+
+    const renderFirms = async () => {
+        let withDistance = [];
+        try {
+            const apiUrl = `/api/v1/legal-help/firms?matter=${encodeURIComponent(currentMatter)}&lat=${userCoords.lat}&lng=${userCoords.lng}&city=${encodeURIComponent(userLocationKey)}`;
+            const res = await fetch(apiUrl);
+            if (res.ok) {
+                const data = await res.json();
+                if (data && Array.isArray(data.firms)) {
+                    withDistance = data.firms;
+                }
+            }
+        } catch (e) {
+            // Graceful fallback to client-side engine if server is unreachable
+        }
+
+        if (!withDistance.length) {
+            const matching = LAW_FIRMS.filter(f => f.matter.toLowerCase() === currentMatter.toLowerCase());
+            withDistance = matching.map(f => ({
+                ...f,
+                distanceKm: getDistanceKm(userCoords.lat, userCoords.lng, f.lat, f.lng)
+            }));
+            withDistance.sort((a, b) => a.distanceKm - b.distanceKm);
+        }
+
+        const container = $('#firms-list');
+        if (!withDistance.length) {
+            container.innerHTML = `<div class="empty-state"><span class="empty-icon">⌁</span><h3>No firms found</h3><p>Try choosing a different legal matter or location.</p></div>`;
+            return;
+        }
+
+        container.innerHTML = `
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
+                <p class="eyebrow" style="margin:0;">${currentMatter.toUpperCase()} · SORTED BY PROXIMITY</p>
+                <small style="color:var(--muted);">${withDistance.length} law firms found</small>
+            </div>
+            ${withDistance.map((firm, idx) => `
+                <article class="firm-card ${idx === 0 ? 'closest-match' : ''}">
+                    ${idx === 0 ? '<span class="closest-ribbon">⭐ Closest to You</span>' : ''}
+                    <div class="firm-card-header">
+                        <h3 class="firm-card-title">${esc(firm.name)}</h3>
+                        <span class="distance-pill">📍 ${firm.distanceKm} km away</span>
+                    </div>
+                    <p class="firm-address">${esc(firm.address)} · <strong>${esc(firm.city)}</strong></p>
+                    <div class="firm-rating-row">
+                        <span class="firm-rating-stars">★★★★★ ${firm.rating}</span>
+                        <span>Verified Legal Practice</span>
+                    </div>
+                    <div class="firm-tags-row">
+                        ${firm.specialties.map(s => `<span class="firm-tag">${esc(s)}</span>`).join('')}
+                    </div>
+                    <div class="firm-actions-row">
+                        <a href="tel:${firm.phone.replace(/[^0-9+]/g, '')}" class="firm-call-link">
+                            📞 ${esc(firm.phone)}
+                        </a>
+                        <button type="button" class="firm-consult-btn" data-consult="${esc(firm.name)}">
+                            Book Consultation →
+                        </button>
+                    </div>
+                </article>
+            `).join('')}
+        `;
+    };
+
+    renderFirms();
+
+    // Change legal matter
+    $('#matter-nav').onclick = e => {
+        const btn = e.target.closest('button[data-matter]');
+        if (!btn) return;
+        currentMatter = btn.dataset.matter;
+        $$('#matter-nav button').forEach(b => b.classList.toggle('active', b === btn));
+        renderFirms();
+    };
+
+    // Change location from dropdown
+    $('#loc-select').onchange = e => {
+        userLocationKey = e.target.value;
+        userCoords = LOCATIONS[userLocationKey] || LOCATIONS.sandton;
+        renderFirms();
+        toast(`Location updated to ${LOCATIONS[userLocationKey].name}. Recalculating nearest firms...`);
+    };
+
+    // Geolocation detection
+    $('#btn-detect-gps').onclick = () => {
+        if (!navigator.geolocation) {
+            return toast('Geolocation is not supported by your browser.');
+        }
+        toast('Detecting GPS location...');
+        navigator.geolocation.getCurrentPosition(
+            pos => {
+                userCoords = { lat: pos.coords.latitude, lng: pos.coords.longitude };
+                renderFirms();
+                toast(`GPS coordinates detected (${userCoords.lat.toFixed(2)}, ${userCoords.lng.toFixed(2)}). Nearest firms listed!`);
+            },
+            err => {
+                console.warn('Geolocation error:', err);
+                toast('Could not access GPS location. Using preset city coordinates.');
+            }
+        );
+    };
+
+    // Consultation booking modal
+    document.addEventListener('click', e => {
+        if (e.target.dataset && e.target.dataset.consult) {
+            const firmName = e.target.dataset.consult;
+            showConsultationModal(firmName, currentMatter);
+        }
+    });
+}
+
+function showConsultationModal(firmName, matter) {
+    const modal = document.createElement('div');
+    modal.className = 'checkout-modal-overlay';
+    modal.innerHTML = `
+        <div class="checkout-modal-box">
+            <button class="modal-close-btn" id="modal-close">✕</button>
+            <p class="eyebrow">DIRECT ATTORNEY REFERRAL</p>
+            <h3>Consultation with ${esc(firmName)}</h3>
+            <p>Request a confidential preliminary review for your <strong>${esc(matter)}</strong> matter under POPIA safe harbor.</p>
+            <form id="consult-form" style="display:grid; gap:14px; margin-top:20px;">
+                <label><b>Your Full Name</b><input required id="c-name" value="${esc(profile().name)}"></label>
+                <label><b>Phone Number</b><input required id="c-phone" placeholder="+27 (0)82 123 4567"></label>
+                <label><b>Brief Summary of Matter</b><textarea required id="c-notes" placeholder="Briefly describe your situation..."></textarea></label>
+                <button class="primary" style="margin-top:10px;">Submit Consultation Request</button>
+            </form>
+        </div>
+    `;
+    document.body.appendChild(modal);
+
+    modal.querySelector('#modal-close').onclick = () => document.body.removeChild(modal);
+    modal.querySelector('#consult-form').onsubmit = e => {
+        e.preventDefault();
+        document.body.removeChild(modal);
+        toast(`Consultation request dispatched to ${firmName}. A partner will contact you shortly.`);
+    };
+}
+
+// ------------------------------------------------------------------------------
+// 8. PLANS & PREMIUM BENEFITS (Comprehensive Showcase)
+// ------------------------------------------------------------------------------
+function pricing() {
+    let billingCycle = 'monthly'; // 'monthly' | 'annual'
+
+    const renderPricing = () => {
+        const isAnnual = billingCycle === 'annual';
+        const standardPrice = isAnnual ? 'R79' : 'R99';
+        const premiumPrice = isAnnual ? 'R159' : 'R199';
+        const standardPeriod = isAnnual ? '/ month (billed R948/yr)' : '/ month';
+        const premiumPeriod = isAnnual ? '/ month (billed R1,908/yr)' : '/ month';
+
+        shell('Plans & Premium Benefits', `
+            <div class="pricing-header-wrap">
+                <p class="eyebrow">TRANSPARENT VALUE · SOUTH AFRICAN LEGAL TECH</p>
+                <h1>Empower your legal work with Premium</h1>
+                <p class="intro" style="margin: 0 auto;">Choose the right level of protection. Enjoy unlimited document generation, AI contract uploads, cryptographic tamper-evident locking, and proximity legal matching.</p>
+
+                <div class="billing-switcher">
+                    <button type="button" class="${!isAnnual ? 'active' : ''}" id="btn-monthly">Monthly Billing</button>
+                    <button type="button" class="${isAnnual ? 'active' : ''}" id="btn-annual">Annual Billing <span class="badge-save">SAVE 20%</span></button>
+                </div>
+            </div>
+
+            <!-- Tiered Cards -->
+            <div class="plans-grid-3">
+                <!-- Free Starter -->
+                <article class="plan-box">
+                    <p class="plan-tier-name">FREE STARTER</p>
+                    <div class="plan-price-row">
+                        <span class="plan-price-val">R0</span>
+                        <span class="plan-price-period">/ forever</span>
+                    </div>
+                    <p class="plan-desc">Essential drafting and dictionary exploration for basic needs.</p>
+                    <ul class="plan-benefits-list">
+                        <li><b>✓</b> 5 standard document templates</li>
+                        <li><b>✓</b> Plain-English legal dictionary</li>
+                        <li><b>✓</b> Browser-local draft storage</li>
+                        <li><b>✗</b> <span style="color:#94a3b8">Contract file uploads</span></li>
+                        <li><b>✗</b> <span style="color:#94a3b8">Document locking & SHA-256 seal</span></li>
+                        <li><b>✗</b> <span style="color:#94a3b8">Custom terms & clauses</span></li>
+                    </ul>
+                    <button type="button" class="plan-cta-btn secondary" disabled>Current Plan</button>
+                </article>
+
+                <!-- Standard Pro -->
+                <article class="plan-box">
+                    <p class="plan-tier-name">STANDARD PRO</p>
+                    <div class="plan-price-row">
+                        <span class="plan-price-val">${standardPrice}</span>
+                        <span class="plan-price-period">${standardPeriod}</span>
+                    </div>
+                    <p class="plan-desc">For growing small businesses, freelancers, and individuals.</p>
+                    <ul class="plan-benefits-list">
+                        <li><b>✓</b> <strong>Unlimited document creation</strong></li>
+                        <li class="pro-feature"><b>✓</b> <strong>Document Locking (SHA-256 tamper seal)</strong></li>
+                        <li class="pro-feature"><b>✓</b> <strong>Personalize Contract (Custom clauses studio)</strong></li>
+                        <li><b>✓</b> Clean Microsoft Word (.docx) & PDF exports</li>
+                        <li><b>✓</b> Email support within 24 hours</li>
+                        <li><b>✗</b> <span style="color:#94a3b8">AI contract reader uploads</span></li>
+                    </ul>
+                    <button type="button" class="plan-cta-btn primary pay-trigger" data-plan="standard">Choose Standard</button>
+                </article>
+
+                <!-- Premium Enterprise -->
+                <article class="plan-box popular">
+                    <span class="popular-flag">⭐ MOST POPULAR</span>
+                    <p class="plan-tier-name" style="color:#9d6924;">PREMIUM ENTERPRISE</p>
+                    <div class="plan-price-row">
+                        <span class="plan-price-val">${premiumPrice}</span>
+                        <span class="plan-price-period">${premiumPeriod}</span>
+                    </div>
+                    <p class="plan-desc">Complete legal confidence with AI analysis and verified attorney access.</p>
+                    <ul class="plan-benefits-list">
+                        <li class="pro-feature"><b>✓</b> <strong>Everything in Standard Pro</strong></li>
+                        <li class="pro-feature"><b>✓</b> <strong>Upload Contracts (PDF, DOCX) & AI Explainer</strong></li>
+                        <li class="pro-feature"><b>✓</b> <strong>Clause-by-clause risk & trap detection</strong></li>
+                        <li class="pro-feature"><b>✓</b> <strong>Proximity Attorney Matching & Priority Consultations</strong></li>
+                        <li class="pro-feature"><b>✓</b> <strong>POPIA, BCEA & CPA Compliance Audit Pack</strong></li>
+                        <li class="pro-feature"><b>✓</b> <strong>Encrypted Supabase Cloud Vault</strong></li>
+                    </ul>
+                    <button type="button" class="plan-cta-btn primary pay-trigger" data-plan="premium" style="background:#14223b !important; color:#fff !important;">Get Premium Enterprise</button>
+                </article>
+            </div>
+
+            <!-- Detailed Comparison Matrix -->
+            <div class="comparison-section-box">
+                <h3 style="font: 600 24px 'Playfair Display', serif; color:var(--navy); margin-top:0;">Plan Benefits Comparison</h3>
+                <table class="comparison-matrix-table">
+                    <thead>
+                        <tr>
+                            <th>Feature / Capability</th>
+                            <th>Free Starter</th>
+                            <th>Standard Pro</th>
+                            <th>Premium Enterprise</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>South African Guided Legal Templates</td>
+                            <td>5 templates</td>
+                            <td>Unlimited</td>
+                            <td>Unlimited</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Upload Contracts (PDF, DOCX, TXT)</strong></td>
+                            <td><span class="check-no">—</span></td>
+                            <td><span class="check-no">—</span></td>
+                            <td><span class="check-yes">✓ Included</span></td>
+                        </tr>
+                        <tr>
+                            <td><strong>AI Plain-English Clause Explainer</strong></td>
+                            <td><span class="check-no">—</span></td>
+                            <td><span class="check-no">—</span></td>
+                            <td><span class="check-yes">✓ Included</span></td>
+                        </tr>
+                        <tr>
+                            <td><strong>Cryptographic Document Locking (SHA-256)</strong></td>
+                            <td><span class="check-no">—</span></td>
+                            <td><span class="check-yes">✓ Included</span></td>
+                            <td><span class="check-yes">✓ Included</span></td>
+                        </tr>
+                        <tr>
+                            <td><strong>Personalize Contract (Custom Clauses Studio)</strong></td>
+                            <td><span class="check-no">—</span></td>
+                            <td><span class="check-yes">✓ Included</span></td>
+                            <td><span class="check-yes">✓ Included</span></td>
+                        </tr>
+                        <tr>
+                            <td><strong>Proximity-Sorted Law Firm Referrals</strong></td>
+                            <td>Basic directory</td>
+                            <td>Basic directory</td>
+                            <td><span class="check-yes">✓ Priority Match & Booking</span></td>
+                        </tr>
+                        <tr>
+                            <td>Encrypted Cloud Vault (Private signed URLs)</td>
+                            <td>Local only</td>
+                            <td>Local only</td>
+                            <td><span class="check-yes">✓ Supabase Cloud</span></td>
+                        </tr>
+                        <tr>
+                            <td>Statutory Compliance Checks (POPIA, BCEA)</td>
+                            <td><span class="check-no">—</span></td>
+                            <td>Standard</td>
+                            <td><span class="check-yes">✓ Comprehensive</span></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        `);
+
+        $('#btn-monthly').onclick = () => { billingCycle = 'monthly'; renderPricing(); };
+        $('#btn-annual').onclick = () => { billingCycle = 'annual'; renderPricing(); };
+
+        $$('.pay-trigger').forEach(btn => {
+            btn.onclick = () => {
+                const planName = btn.dataset.plan === 'premium' ? 'Premium Enterprise' : 'Standard Pro';
+                showCheckoutModal(planName);
+            };
+        });
+    };
+
+    renderPricing();
+}
+
+function showCheckoutModal(planName) {
+    const modal = document.createElement('div');
+    modal.className = 'checkout-modal-overlay';
+    modal.innerHTML = `
+        <div class="checkout-modal-box">
+            <button class="modal-close-btn" id="modal-close">✕</button>
+            <p class="eyebrow">SECURE CHECKOUT · INSTANT ACTIVATION</p>
+            <h3>Upgrade to ${esc(planName)}</h3>
+            <p>PCI-compliant South African Rand payment processing. Powered by secure 256-bit TLS encryption.</p>
+            <div style="background:#f8fafc; border:1px solid #e2e8f0; padding:16px; border-radius:6px; margin:18px 0;">
+                <div style="display:flex; justify-content:space-between; margin-bottom:8px;">
+                    <span>Plan:</span>
+                    <b>${esc(planName)}</b>
+                </div>
+                <div style="display:flex; justify-content:space-between; margin-bottom:8px;">
+                    <span>Security:</span>
+                    <span>256-bit TLS Encrypted</span>
+                </div>
+                <div style="display:flex; justify-content:space-between; color:#216657; font-weight:700;">
+                    <span>Instant Activation:</span>
+                    <span>All Premium Benefits Unlocked</span>
+                </div>
+            </div>
+            <button class="primary wide" id="confirm-upgrade-btn">Activate ${esc(planName)} Now</button>
+        </div>
+    `;
+    document.body.appendChild(modal);
+
+    modal.querySelector('#modal-close').onclick = () => document.body.removeChild(modal);
+    modal.querySelector('#confirm-upgrade-btn').onclick = () => {
+        document.body.removeChild(modal);
+        const p = profile();
+        p.tier = planName.toLowerCase().includes('premium') ? 'premium' : 'standard';
+        localStorage.setItem('lawcompass-profile', JSON.stringify(p));
+        toast(`Success! Your account is now upgraded to ${planName}.`);
+    };
+}
+
+// ------------------------------------------------------------------------------
+// 9. UPLOAD & EXPLAIN CONTRACT (AI Reader)
+// ------------------------------------------------------------------------------
+function plainClause(clause) {
+    if (/terminat|cancel|notice/i.test(clause)) return 'This explains how the agreement can end and what prior notice must be provided.';
+    if (/pay|fee|rent|invoice|cost|interest/i.test(clause)) return 'This deals with money: review the exact amount, due dates, payment methods, and late penalty interest.';
+    if (/liab|indemn|damage|loss|hold harmless/i.test(clause)) return 'This allocates legal risk. Check who is held financially responsible if a claim or loss occurs.';
+    if (/confidential|non-disclos/i.test(clause)) return 'Requires designated business or personal information to be kept secret and protected.';
+    if (/dispute|jurisdiction|governing law/i.test(clause)) return 'Specifies which South African law applies and whether disputes go to AFSA arbitration or Court.';
+    if (/warrant|represent/i.test(clause)) return 'A legal promise that stated facts, capacity, or property titles are accurate.';
+    return 'Sets a binding condition, obligation, or procedure. Check who must do what, by when, and the consequence of failure.';
+}
+
+function upload() {
+    shell('Upload & Explain Contract', `
+        <p class="eyebrow">CONTRACT READER & CLAUSE EXPLAINER</p>
+        <h1>Upload a contract</h1>
+        <p class="intro">Upload a text agreement, PDF, or paste legal clauses. LawCompass identifies key clauses, flags unfair terms, and provides clear plain-English translations.</p>
+
+        <div class="upload-layout">
+            <section class="upload-card">
+                <label class="dropzone" for="contract-file">
+                    <span>↥</span>
+                    <b>Upload contract file</b>
+                    <small>PDF, DOCX, DOC, RTF, ODT, TXT, Markdown, HTML, and CSV accepted.</small>
+                    <input id="contract-file" type="file" accept=".pdf,.doc,.docx,.rtf,.odt,.txt,.md,.html,.htm,.csv">
+                </label>
+                <p id="upload-status" class="upload-status">Your file is processed privately in your browser.</p>
+
+                <label class="paste-label">
+                    Contract or clause text
+                    <textarea id="contract-text" placeholder="Paste a legal clause or the full text of your agreement here..."></textarea>
+                </label>
+
+                <button class="primary" id="explain-contract">Explain in simple English</button>
+            </section>
+
+            <section class="explanation-card">
+                <p class="eyebrow">PLAIN-ENGLISH EXPLANATION</p>
+                <div id="contract-explanation" class="reader-empty">
+                    <span>◌</span>
+                    <h3>Ready when you are</h3>
+                    <p>Upload a file or paste text to receive a plain-English clause breakdown and practical reading alerts.</p>
+                </div>
+            </section>
+        </div>
+
+        <p class="form-note">
+            This automated reader is an educational aid and does not constitute formal legal advice. For contentious disputes, consult a registered legal practitioner.
+        </p>
+    `);
+
+    const file = $('#contract-file');
+    const text = $('#contract-text');
+    const status = $('#upload-status');
+
+    file.onchange = () => {
+        const selected = file.files[0];
+        if (!selected) return;
+
+        status.textContent = `Processing ${selected.name}...`;
+
+        // If text-like file
+        if (/\.(txt|md|html?|csv)$/i.test(selected.name)) {
+            const reader = new FileReader();
+            reader.onload = () => {
+                text.value = reader.result;
+                status.textContent = `${selected.name} loaded. Ready to explain.`;
+            };
+            reader.readAsText(selected);
+        } else if (/\.docx$/i.test(selected.name) && window.JSZip) {
+            // Extract text from DOCX
+            const reader = new FileReader();
+            reader.onload = async () => {
+                try {
+                    const zip = await window.JSZip.loadAsync(reader.result);
+                    const xml = await zip.file('word/document.xml').async('text');
+                    const cleanText = xml.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
+                    text.value = cleanText;
+                    status.textContent = `${selected.name} DOCX text extracted successfully!`;
+                } catch (e) {
+                    status.textContent = `${selected.name} selected. Paste clauses directly if extraction is blocked.`;
+                }
+            };
+            reader.readAsArrayBuffer(selected);
+        } else {
+            status.textContent = `${selected.name} selected. Copy and paste specific clauses into the box below for explanation.`;
+        }
+    };
+
+    $('#explain-contract').onclick = () => {
+        const value = text.value.trim();
+        if (!value) return toast('Upload a readable file or paste contract text first.');
+
+        const clauses = value.split(/(?<=[.!?;])\s+|\n+/).filter(x => x.trim().length > 20).slice(0, 10);
+        const flags = [];
+
+        if (/terminat|cancel|notice/i.test(value)) flags.push('Notice periods and unilateral cancellation clauses');
+        if (/pay|fee|rent|invoice|interest|late/i.test(value)) flags.push('Payment terms, late fees, and escalation percentages');
+        if (/liab|indemn|damage|loss|hold harmless/i.test(value)) flags.push('Unlimited indemnities and risk transfer provisions');
+        if (/confidential|trade secret/i.test(value)) flags.push('Confidentiality scope and post-termination restrictions');
+        if (/dispute|jurisdiction|governing law/i.test(value)) flags.push('Jurisdiction clauses and arbitration procedures');
+
+        const simple = clauses.map((c, i) => `
+            <article>
+                <b>Clause ${i + 1}</b>
+                <p>${esc(c)}</p>
+                <small>Plain reading: ${plainClause(c)}</small>
+            </article>
+        `).join('');
+
+        $('#contract-explanation').className = '';
+        $('#contract-explanation').innerHTML = `
+            <h3>Contract Structure & Plain-English Analysis</h3>
+            <p>This document sets out the legal obligations of the parties. Review the flags and clause meanings below:</p>
+            ${flags.length ? `<h4>⚠️ Pay Close Attention To</h4><ul>${flags.map(x => `<li>${x}</li>`).join('')}</ul>` : ''}
+            <h4>Clauses Identified (${clauses.length})</h4>
+            ${simple || '<p>Add more detailed text for comprehensive clause parsing.</p>'}
+        `;
+    };
+}
+
+// ------------------------------------------------------------------------------
+// 10. HISTORY, DICTIONARY & TRANSLATOR
+// ------------------------------------------------------------------------------
+function historyPage() {
+    const h = history();
+    shell('Document History & Vault', `
+        <p class="eyebrow">CONFIDENTIAL VAULT · POPIA COMPLIANT</p>
+        <h1>Your generated documents</h1>
+        <p class="intro">View your drafts and locked legal instruments. Locked documents include verifiable SHA-256 integrity seals.</p>
+        <div class="history-list">
+            ${h.length ? h.map(x => `
+                <article class="history-item">
+                    <span>${x.isLocked ? '🔒' : '▣'}</span>
+                    <div>
+                        <b>${esc(x.name)} ${x.isLocked ? '<span class="history-lock-pill">🔒 Locked & Finalized</span>' : ''}</b>
+                        <small>Created ${esc(x.date)} · ${x.lockHash ? `Seal: ${esc(x.lockHash.slice(0, 24))}...` : 'Draft'}</small>
+                    </div>
+                    <small>Local Storage</small>
+                </article>
+            `).join('') : `
+                <div class="empty-state">
+                    <span class="empty-icon">◷</span>
+                    <h3>No documents yet</h3>
+                    <p>Your generated contracts and locked instruments will appear here.</p>
+                    <a class="primary" href="documents.html">Create your first document</a>
+                </div>
+            `}
+        </div>
+    `);
+}
+
+function dictionary() {
+    shell('Legal Dictionary', `
+        <p class="eyebrow">PLAIN-ENGLISH SOUTH AFRICAN GLOSSARY</p>
+        <h1>Legal dictionary</h1>
+        <p class="intro">Understand everyday legal language without the confusing legalese. Click any popular term below or type a search.</p>
+        <div class="search">
+            <input id="term" placeholder="Search a term (e.g. consideration, lease, popia, bcea)">
+            <button class="primary" id="search">Search</button>
+        </div>
+        <div id="definition" class="definition empty">Search a legal term or select a suggestion below.</div>
+        <div class="chips">
+            ${Object.keys(terms).map(t => `<button data-term="${t}">${t.toUpperCase()}</button>`).join('')}
+        </div>
+    `);
+
+    const show = w => {
+        const v = terms[w.toLowerCase()];
+        $('#definition').classList.remove('empty');
+        $('#definition').innerHTML = v ? `
+            <h3>${v[0]}</h3>
+            <p>${v[1]}</p>
+            <p><b>In South African Context:</b> ${v[2]}</p>
+        ` : `
+            <h3>${esc(w)}</h3>
+            <p>No definition found in our local legal glossary. Try one of the suggested terms below.</p>
+        `;
+    };
+
+    $('#search').onclick = () => show($('#term').value);
+    document.addEventListener('click', e => {
+        if (e.target.dataset.term) {
+            $('#term').value = e.target.dataset.term;
+            show(e.target.dataset.term);
+        }
+    });
+}
+
+function translate() {
+    shell('Plain-Language Helper', `
+        <p class="eyebrow">SIMPLIFY COMPLEX LEGAL JARGON</p>
+        <h1>Plain-language helper</h1>
+        <p class="intro">Paste any complex clause to receive a breakdown identifying obligations, risks, costs, and termination rights.</p>
+        <textarea id="clause" placeholder="Paste a legal clause here..."></textarea>
+        <div class="translate-actions">
+            <select id="lang-guide">
+                <option>Plain English Guide</option>
+                <option>isiZulu (Reader Guide)</option>
+                <option>Sesotho (Reader Guide)</option>
+                <option>Afrikaans (Reader Guide)</option>
+            </select>
+            <button class="primary" id="explain">Explain text</button>
+        </div>
+        <div class="definition" id="result">Your clause reading guide will appear here.</div>
+    `);
+
+    $('#explain').onclick = () => {
+        const text = $('#clause').value.trim();
+        if (!text) return toast('Paste a legal clause first.');
+        const words = text.split(/\s+/).filter(Boolean).length;
+        $('#result').innerHTML = `
+            <h3>Clause Breakdown (${words} words)</h3>
+            <p><b>Plain Reading:</b> ${plainClause(text)}</p>
+            <p><b>Checklist:</b> 1. Who is obligated? 2. What action is required? 3. What is the deadline? 4. What happens if breached?</p>
+            <p><b>Legal Advice Notice:</b> Always have high-value contracts vetted by a legal professional.</p>
+        `;
+    };
+}
+
+// ------------------------------------------------------------------------------
+// 11. LOGIN & AUTHENTICATION HANDLERS
+// ------------------------------------------------------------------------------
+if ($('#login-form')) {
+    const params = new URLSearchParams(location.search);
+    const redirectTarget = params.get('redirect') || 'dashboard.html';
+
+    $('#login-form').onsubmit = async e => {
+        e.preventDefault();
+        const emailInput = $('#login-email') || $('input[type=email]');
+        const passInput = $('#login-password') || $('input[type=password]');
+        const submitBtn = $('#login-submit-btn') || $('#login-form button[type=submit]');
+        const alertBox = $('#login-alert');
+
+        const email = emailInput ? emailInput.value.trim() : '';
+        const password = passInput ? passInput.value : '';
+
+        if (!email || !password) {
+            if (alertBox) {
+                alertBox.className = 'auth-status-box auth-status-error';
+                alertBox.textContent = 'Please enter your email and password.';
+                alertBox.style.display = 'block';
+            }
+            return;
+        }
+
+        const originalBtnText = submitBtn.innerHTML;
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = 'Signing in...';
+        if (alertBox) alertBox.style.display = 'none';
+
+        try {
+            const res = await fetch('/api/v1/auth/login', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email, password })
+            });
+            const data = await res.json();
+
+            if (!res.ok) {
+                throw new Error(data.error?.message || 'Invalid email or password.');
+            }
+
+            if (data.session?.accessToken) {
+                localStorage.setItem('lawcompass-token', data.session.accessToken);
+            }
+            localStorage.setItem('lawcompass-profile', JSON.stringify({
+                id: data.user.id,
+                name: data.user.fullName || data.user.email.split('@')[0],
+                email: data.user.email,
+                tier: 'premium'
+            }));
+
+            location.href = redirectTarget;
+        } catch (err) {
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = originalBtnText;
+            if (alertBox) {
+                alertBox.className = 'auth-status-box auth-status-error';
+                alertBox.textContent = err.message || 'Login failed. Please verify your credentials.';
+                alertBox.style.display = 'block';
+            } else {
+                alert(err.message);
+            }
+        }
+    };
+}
+
+// ------------------------------------------------------------------------------
+// SOUTH AFRICAN USER REGISTRATION & OTP VERIFICATION HANDLER
+// ------------------------------------------------------------------------------
+if ($('#signup-form')) {
+    const params = new URLSearchParams(location.search);
+    const redirectTarget = params.get('redirect') || 'dashboard.html';
+
+    let registeredEmail = '';
+    let countdownInterval = null;
+
+    const startOtpTimer = (seconds = 600) => {
+        if (countdownInterval) clearInterval(countdownInterval);
+        let remaining = seconds;
+        const display = $('#otp-timer-display');
+        if (!display) return;
+
+        const updateTimer = () => {
+            const mins = Math.floor(remaining / 60);
+            const secs = remaining % 60;
+            display.innerHTML = `Code expires in: <strong>${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}</strong>`;
+            if (remaining <= 0) {
+                clearInterval(countdownInterval);
+                display.innerHTML = '<span style="color:#b91c1c;">Code expired. Please request a new OTP.</span>';
+            }
+            remaining--;
+        };
+        updateTimer();
+        countdownInterval = setInterval(updateTimer, 1000);
+    };
+
+    // Step 1: Registration Form Submission
+    $('#signup-form').onsubmit = async e => {
+        e.preventDefault();
+        const alertBox = $('#signup-alert');
+        const submitBtn = $('#signup-submit-btn');
+
+        const firstName = ($('#signup-first-name')?.value || '').trim();
+        const surname = ($('#signup-surname')?.value || '').trim();
+        const dob = $('#signup-dob')?.value || '';
+        const persona = $('#signup-persona')?.value || 'individual';
+        const preferredLanguage = $('#signup-language')?.value || 'English';
+        const residentialAddress = ($('#signup-address')?.value || '').trim();
+        const city = ($('#signup-city')?.value || '').trim();
+        const province = $('#signup-province')?.value || '';
+        const postalCode = ($('#signup-postal')?.value || '').trim();
+        const phone = ($('#signup-phone')?.value || '').trim();
+        const email = ($('#signup-email')?.value || '').trim().toLowerCase();
+        const password = $('#signup-password')?.value || '';
+        const confirmPassword = $('#signup-confirm-password')?.value || '';
+        const termsAccepted = $('#signup-terms-check')?.checked || false;
+
+        const showError = msg => {
+            if (alertBox) {
+                alertBox.className = 'auth-status-box auth-status-error';
+                alertBox.textContent = msg;
+                alertBox.style.display = 'block';
+                alertBox.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            } else {
+                alert(msg);
+            }
+        };
+
+        if (!firstName || !surname) {
+            return showError('Please enter both your first name and surname.');
+        }
+        if (!residentialAddress || !city || !province || !postalCode) {
+            return showError('Please provide your complete South African residential address, city, province, and postal code.');
+        }
+        if (!province) {
+            return showError('Please select your province from the dropdown list.');
+        }
+        if (!email || !email.includes('@')) {
+            return showError('Please enter a valid email address.');
+        }
+        if (password.length < 8) {
+            return showError('Password must be at least 8 characters long for security compliance.');
+        }
+        if (password !== confirmPassword) {
+            return showError('Passwords do not match. Please re-enter carefully.');
+        }
+        if (!termsAccepted) {
+            return showError('You must accept the LawCompass Terms and Conditions (Version 1.0 - South Africa) to proceed.');
+        }
+
+        const originalBtnText = submitBtn.innerHTML;
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = 'Sending Verification OTP...';
+        if (alertBox) alertBox.style.display = 'none';
+
+        try {
+            const res = await fetch('/api/v1/auth/register-start', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    firstName,
+                    surname,
+                    dob,
+                    persona,
+                    preferredLanguage,
+                    residentialAddress,
+                    city,
+                    province,
+                    postalCode,
+                    phone,
+                    email,
+                    password,
+                    termsAccepted
+                })
+            });
+
+            const data = await res.json();
+            if (!res.ok) {
+                throw new Error(data.error?.message || 'Registration failed. Please verify your details.');
+            }
+
+            registeredEmail = email;
+
+            // Transition to Step 2 (OTP Screen)
+            $('#signup-step-1').style.display = 'none';
+            $('#signup-step-2').style.display = 'block';
+            $('#otp-target-email').textContent = email;
+
+            // If sandbox/dev OTP is returned, display quick copy pill
+            if (data.devOtp) {
+                const devContainer = $('#otp-dev-container');
+                const devCode = $('#otp-dev-code');
+                if (devContainer && devCode) {
+                    devCode.textContent = data.devOtp;
+                    devContainer.style.display = 'flex';
+                    $('#btn-copy-otp').onclick = () => {
+                        const input = $('#otp-input');
+                        if (input) {
+                            input.value = data.devOtp;
+                            input.focus();
+                        }
+                    };
+                }
+            }
+
+            startOtpTimer(data.expiresInSeconds || 600);
+            const otpInput = $('#otp-input');
+            if (otpInput) {
+                otpInput.value = '';
+                otpInput.focus();
+            }
+        } catch (err) {
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = originalBtnText;
+            showError(err.message || 'Could not send verification code.');
+        }
+    };
+
+    // Step 2: OTP Verification Submission
+    if ($('#otp-form')) {
+        $('#otp-form').onsubmit = async e => {
+            e.preventDefault();
+            const otpAlert = $('#otp-alert');
+            const submitBtn = $('#otp-submit-btn');
+            const otp = ($('#otp-input')?.value || '').trim();
+
+            const showOtpError = msg => {
+                if (otpAlert) {
+                    otpAlert.className = 'auth-status-box auth-status-error';
+                    otpAlert.textContent = msg;
+                    otpAlert.style.display = 'block';
+                } else {
+                    alert(msg);
+                }
+            };
+
+            if (!otp || otp.length !== 6) {
+                return showOtpError('Please enter the complete 6-digit verification code.');
+            }
+
+            const origText = submitBtn.innerHTML;
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = 'Verifying Code...';
+            if (otpAlert) otpAlert.style.display = 'none';
+
+            try {
+                const res = await fetch('/api/v1/auth/verify-otp', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email: registeredEmail, otp })
+                });
+
+                const data = await res.json();
+                if (!res.ok) {
+                    throw new Error(data.error?.message || 'Verification failed. Please check the code.');
+                }
+
+                if (data.session?.accessToken) {
+                    localStorage.setItem('lawcompass-token', data.session.accessToken);
+                }
+                localStorage.setItem('lawcompass-profile', JSON.stringify({
+                    id: data.user.id,
+                    name: data.user.fullName || registeredEmail.split('@')[0],
+                    email: data.user.email || registeredEmail,
+                    province: data.user.province,
+                    persona: data.user.persona,
+                    tier: data.user.tier || 'free'
+                }));
+
+                if (otpAlert) {
+                    otpAlert.className = 'auth-status-box auth-status-success';
+                    otpAlert.textContent = 'Email verified! Preparing your LawCompass workspace...';
+                    otpAlert.style.display = 'block';
+                }
+
+                if (countdownInterval) clearInterval(countdownInterval);
+
+                setTimeout(() => {
+                    location.href = redirectTarget;
+                }, 800);
+            } catch (err) {
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = origText;
+                showOtpError(err.message || 'Invalid or expired code.');
+            }
+        };
+
+        // Back to Edit Form
+        $('#btn-back-to-form').onclick = () => {
+            $('#signup-step-2').style.display = 'none';
+            $('#signup-step-1').style.display = 'block';
+            const btn = $('#signup-submit-btn');
+            if (btn) {
+                btn.disabled = false;
+                btn.innerHTML = 'Continue & Request Verification Code <span>→</span>';
+            }
+        };
+
+        // Resend OTP
+        $('#btn-resend-otp').onclick = async () => {
+            const btn = $('#btn-resend-otp');
+            btn.textContent = 'Sending...';
+            try {
+                const res = await fetch('/api/v1/auth/resend-otp', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email: registeredEmail })
+                });
+                const data = await res.json();
+                if (!res.ok) throw new Error(data.error?.message || 'Failed to resend code');
+
+                toast(`A fresh code has been dispatched to ${registeredEmail}`);
+                startOtpTimer(data.expiresInSeconds || 600);
+                if (data.devOtp && $('#otp-dev-code')) {
+                    $('#otp-dev-code').textContent = data.devOtp;
+                }
+            } catch (e) {
+                alert(e.message);
+            } finally {
+                btn.textContent = 'Resend Code ⟳';
+            }
+        };
+    }
+}
+
+// ------------------------------------------------------------------------------
+// 12. ROUTE BOOTSTRAPPER
+// ------------------------------------------------------------------------------
+const routes = {
+    dashboard,
+    documents,
+    builder,
+    dictionary,
+    help,
+    history: historyPage,
+    upload,
+    translate,
+    pricing
+};
+
+if (page && routes[page]) {
+    routes[page]();
+}

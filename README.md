@@ -1,4 +1,4 @@
-# LawBuddy web app
+# LawCompass web app
 
 A dependency-free, multi-page JavaScript conversion of the WinForms **Doc. contract** application. The original desktop source and its local backend integrations were not edited.
 
