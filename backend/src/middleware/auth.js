@@ -10,7 +10,7 @@ async function requireAuth(req, res, next) {
         if (!authHeader || !authHeader.startsWith('Bearer ')) {
             return res.status(401).json({
                 error: {
-                    message: 'Authentication required. Missing or malformed authorization header.',
+                    message: 'Please sign in to continue.',
                     code: 'UNAUTHORIZED',
                     requestId: req.id
                 }
@@ -23,7 +23,7 @@ async function requireAuth(req, res, next) {
         if (error || !user) {
             return res.status(401).json({
                 error: {
-                    message: 'Invalid or expired session token.',
+                    message: 'Please sign in again to continue.',
                     code: 'INVALID_TOKEN',
                     requestId: req.id
                 }

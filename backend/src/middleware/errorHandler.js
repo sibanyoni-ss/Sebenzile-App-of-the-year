@@ -16,14 +16,17 @@ function errorHandler(err, req, res, next) {
     });
 
     const isClientError = statusCode >= 400 && statusCode < 500;
-    const safeMessage = isClientError 
-        ? err.message 
-        : 'An unexpected error occurred while processing your request. Please try again later.';
+    const safeMessage = isClientError && statusCode < 500 && ['INVALID_INPUT', 'MESSAGE_TOO_LONG', 'MISSING_ID_CREDENTIALS'].includes(err.code)
+        ? err.message
+        : statusCode === 401 ? 'Please sign in again to continue.'
+        : statusCode === 403 ? 'You do not have permission to do that.'
+        : statusCode === 404 ? 'We could not find what you requested.'
+        : 'Something went wrong. Please try again in a moment.';
 
     res.status(statusCode).json({
         error: {
             message: safeMessage,
-            code: err.code || (statusCode === 404 ? 'NOT_FOUND' : 'INTERNAL_SERVER_ERROR'),
+            code: statusCode >= 500 ? 'INTERNAL_SERVER_ERROR' : (err.code || (statusCode === 404 ? 'NOT_FOUND' : 'REQUEST_ERROR')),
             requestId: requestId
         }
     });

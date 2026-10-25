@@ -4,6 +4,7 @@ const crypto = require('crypto');
 const { requireAuth } = require('../middleware/auth');
 const config = require('../config/env');
 const { supabaseAdmin } = require('../config/supabase');
+const { getAccountTier, hasPremiumFeatures } = require('../services/planAccess');
 
 /**
  * POST /api/v1/uploads/initiate
@@ -47,9 +48,27 @@ router.post('/initiate', requireAuth, async (req, res, next) => {
             return res.status(400).json({ error: { message: 'Unsupported file format. Only PDF, DOCX, DOC, and TXT are permitted.', code: 'UNSUPPORTED_FILE_TYPE' } });
         }
 
+        const tier = await getAccountTier(req);
+        if (!hasPremiumFeatures(tier) && tier !== 'free') {
+            return res.status(403).json({ error: { message: 'Contract uploads are not included with your current plan.', code: 'FEATURE_NOT_INCLUDED' } });
+        }
+        if (tier === 'free') {
+            if (!/\.(pdf|docx|txt)$/i.test(filename)) {
+                return res.status(403).json({ error: { message: 'The free plan accepts PDF, DOCX and TXT files.', code: 'FREE_FILE_TYPE_LIMIT' } });
+            }
+            const { count, error: countError } = await req.supabase
+                .from('uploads')
+                .select('id', { count: 'exact', head: true })
+                .eq('owner_id', req.user.id);
+            if (countError) return next(countError);
+            if ((count || 0) >= 2) {
+                return res.status(403).json({ error: { message: 'The free plan includes up to 2 contract uploads.', code: 'FREE_UPLOAD_LIMIT' } });
+            }
+        }
+
         // 4. Sanitize filename against directory traversal and shell attacks
         const sanitizedFilename = filename.replace(/[^a-zA-Z0-9._-]/g, '_');
-        const uploadId = 'up_' + crypto.randomBytes(8).toString('hex');
+        const uploadId = crypto.randomUUID();
         const storagePath = `quarantine/${req.user.id}/${uploadId}_${sanitizedFilename}`;
 
         // Create signed upload URL from Supabase Storage
@@ -93,6 +112,22 @@ router.post('/:id/explain', requireAuth, async (req, res, next) => {
     try {
         const { id } = req.params;
         const { contractText } = req.body;
+
+        const tier = await getAccountTier(req);
+        if (!hasPremiumFeatures(tier) && tier !== 'free') {
+            return res.status(403).json({ error: { message: 'Contract explanations are not included with your current plan.', code: 'FEATURE_NOT_INCLUDED' } });
+        }
+
+        const { data: ownedUpload, error: ownershipError } = await req.supabase
+            .from('uploads')
+            .select('id')
+            .eq('id', id)
+            .eq('owner_id', req.user.id)
+            .maybeSingle();
+        if (ownershipError) return next(ownershipError);
+        if (!ownedUpload) {
+            return res.status(404).json({ error: { message: 'We could not find that uploaded contract.', code: 'UPLOAD_NOT_FOUND' } });
+        }
 
         if (!contractText || contractText.trim().length < 20) {
             return res.status(400).json({ error: { message: 'Valid contract text is required for analysis.', code: 'INSUFFICIENT_TEXT' } });

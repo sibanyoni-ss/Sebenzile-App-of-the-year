@@ -17,7 +17,10 @@ function securityMiddleware(app) {
             if (!origin || config.corsOrigins.includes(origin) || config.env === 'development') {
                 callback(null, true);
             } else {
-                callback(new Error('CORS policy: Not allowed by origin'));
+                const error = new Error('Request not allowed.');
+                error.status = 403;
+                error.code = 'FORBIDDEN';
+                callback(error);
             }
         },
         credentials: true,

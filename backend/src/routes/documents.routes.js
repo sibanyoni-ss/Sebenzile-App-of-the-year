@@ -3,6 +3,7 @@ const router = express.Router();
 const { requireAuth } = require('../middleware/auth');
 const { supabaseAdmin } = require('../config/supabase');
 const { generateDocumentLockSeal } = require('../services/documentLockService');
+const { getAccountTier, hasPaidFeatures } = require('../services/planAccess');
 
 /**
  * GET /api/v1/templates
@@ -31,6 +32,13 @@ router.post('/drafts', requireAuth, async (req, res, next) => {
             return res.status(400).json({
                 error: { message: 'templateKey and answers are required.', code: 'INVALID_INPUT' }
             });
+        }
+
+        if (customClauses && (!Array.isArray(customClauses) || customClauses.length > 0)) {
+            const tier = await getAccountTier(req);
+            if (!hasPaidFeatures(tier)) {
+                return res.status(403).json({ error: { message: 'Custom clauses are available with a paid plan.', code: 'FEATURE_NOT_INCLUDED' } });
+            }
         }
 
         // Resolve template_id from templates table
@@ -63,7 +71,7 @@ router.post('/drafts', requireAuth, async (req, res, next) => {
             .single();
 
         if (error) {
-            return res.status(400).json({ error: { message: error.message, code: 'DB_ERROR' } });
+            return res.status(400).json({ error: { message: 'We could not save this document. Please try again.', code: 'SAVE_FAILED' } });
         }
 
         res.status(201).json({ message: 'Draft saved successfully.', draft: data });
@@ -112,7 +120,7 @@ router.post('/:id/lock', requireAuth, async (req, res, next) => {
             .single();
 
         if (updateErr) {
-            return res.status(400).json({ error: { message: updateErr.message, code: 'UPDATE_FAILED' } });
+            return res.status(400).json({ error: { message: 'We could not lock this document. Please try again.', code: 'UPDATE_FAILED' } });
         }
 
         // Store generated locked document record
@@ -128,7 +136,7 @@ router.post('/:id/lock', requireAuth, async (req, res, next) => {
         });
 
         res.json({
-            message: 'Document successfully locked and finalized. Immutability guaranteed.',
+            message: 'Document locked.',
             seal: seal,
             document: updated
         });
@@ -260,7 +268,7 @@ router.post('/:id/unlock', requireAuth, async (req, res, next) => {
             .single();
 
         if (updateErr) {
-            return res.status(400).json({ error: { message: updateErr.message, code: 'UNLOCK_FAILED' } });
+            return res.status(400).json({ error: { message: 'We could not unlock this document. Please try again.', code: 'UNLOCK_FAILED' } });
         }
 
         // 4. Log POPIA-compliant audit event with SHA-256 hashed identity (preserving confidentiality)
@@ -306,7 +314,7 @@ router.get('/', requireAuth, async (req, res, next) => {
             .order('updated_at', { ascending: false });
 
         if (error) {
-            return res.status(400).json({ error: { message: error.message, code: 'FETCH_ERROR' } });
+            return res.status(400).json({ error: { message: 'We could not load your documents. Please try again.', code: 'FETCH_ERROR' } });
         }
 
         res.json({ documents: data || [] });
