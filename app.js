@@ -4,7 +4,7 @@
    1. Route Protection & Auth Guard (Protected pages require sign-in)
    2. Real DOCX Template Population (Maps form inputs directly to docx placeholders)
    3. Proximity-Based Legal Help (Closest law firms under specific issue listed first)
-   4. Document Locking with SHA-256 Cryptographic Tamper Seals
+   4. Document locking in the contract builder
    5. Personalize Contract Studio (Custom terms & conditions / clause presets)
    6. Premium Benefits Showcase & Comparison Matrix
    ============================================================================== */
@@ -26,7 +26,8 @@ const data = {
     Employment: {
         title: 'Employment Contract',
         templateFile: 'Templates/Employee_Contract.docx',
-        desc: 'South African Basic Conditions of Employment Act (BCEA) compliant employment contract.',
+        desc: 'Prepare a draft for an employment arrangement in South Africa.',
+        laws: [['Basic Conditions of Employment Act (BCEA)', 'https://www.gov.za/documents/basic-conditions-employment-act'], ['Labour Relations Act', 'https://www.gov.za/af/documents/labour-relations-act']],
         sections: [
             S('Employer and employee', [
                 F('Employer / company legal name'),
@@ -70,7 +71,8 @@ const data = {
     Lease: {
         title: 'Residential Lease Agreement',
         templateFile: 'Templates/Lease_Agreement.docx',
-        desc: 'Rental Housing Act and Consumer Protection Act (CPA) compliant rental lease.',
+        desc: 'Prepare a draft for a residential rental arrangement in South Africa.',
+        laws: [['Rental Housing Act', 'https://www.gov.za/documents/rental-housing-act'], ['Consumer Protection Act (where applicable)', 'https://www.gov.za/documents/consumer-protection-act']],
         sections: [
             S('Parties and premises', [
                 F('Landlord / lessor full name'),
@@ -108,7 +110,9 @@ const data = {
     NDA: {
         title: 'Non-Disclosure Agreement',
         templateFile: 'Templates/NDA.docx',
-        desc: 'Safeguard trade secrets and proprietary data with enforceable South African confidentiality.',
+        desc: 'Set out how confidential information may be shared and used.',
+        laws: [['Protection of Personal Information Act (POPIA), where personal information is involved', 'https://www.gov.za/documents/protection-personal-information-act'], ['Electronic Communications and Transactions Act (ECTA)', 'https://www.dcdt.gov.za/documents/legislations/acts/file/9-electronic-communications-and-transactions-act-2002.html']],
+        lawNote: 'There is no single Act for every NDA. Contract law applies; POPIA may also apply when personal information is shared.',
         sections: [
             S('Disclosing party', [
                 F('Disclosing party name / company'),
@@ -140,7 +144,9 @@ const data = {
     Service: {
         title: 'Service Contract Agreement',
         templateFile: 'Templates/Service_Agreement.docx',
-        desc: 'Define scope, milestones, intellectual property, and billing schedules for services.',
+        desc: 'Set out the work, timing, payment and responsibilities for a service.',
+        laws: [['Consumer Protection Act (where applicable)', 'https://www.gov.za/documents/consumer-protection-act'], ['Electronic Communications and Transactions Act (ECTA)', 'https://www.dcdt.gov.za/documents/legislations/acts/file/9-electronic-communications-and-transactions-act-2002.html']],
+        lawNote: 'Service contracts generally rely on contract law. The Consumer Protection Act may apply depending on the parties and service.',
         sections: [
             S('Parties and scope', [
                 F('Service provider legal name'),
@@ -174,7 +180,8 @@ const data = {
     Will: {
         title: 'Last Will and Testament',
         templateFile: 'Templates/Will.docx',
-        desc: 'Record your estate bequests, testamentary trusts, and executor nominations legally.',
+        desc: 'Record your wishes for how your estate should be handled.',
+        laws: [['Wills Act', 'https://www.gov.za/documents/wills-act-22-may-2015-1512']],
         sections: [
             S('Testator details', [
                 F('Testator full names'),
@@ -249,10 +256,19 @@ const terms = {
     consideration: ['Consideration', 'Something of value exchanged by parties to a contract (money, goods, or promises).', 'Example: Payment of R10,000 in return for monthly legal consulting services.'],
     nda: ['NDA (Non-Disclosure Agreement)', 'A legally binding agreement designed to keep confidential data and trade secrets strictly private.', 'Example: Two South African tech founders sign an NDA before presenting source code.'],
     lease: ['Lease Agreement', 'A contract where a lessor grants a lessee the right to occupy property for a period in return for rent.', 'Example: A 12-month residential lease subject to the Rental Housing Act.'],
-    will: ['Last Will & Testament', 'A formal declaration of how an individual wishes their estate and assets distributed upon death.', 'Example: A testator appoints an executor and specifies bequests to children.'],
     'service contract': ['Service Contract', 'An agreement detailing scope of work, deliverables, compensation, and liability allocation.', 'Example: A software developer agrees to milestones and payment terms with a corporate client.'],
-    popia: ['POPIA', 'Protection of Personal Information Act 4 of 2013, governing lawful processing and storage of personal data in South Africa.', 'Example: LawCompass implements end-to-end encryption to satisfy POPIA data security requirements.'],
-    bcea: ['BCEA', 'Basic Conditions of Employment Act 75 of 1997, prescribing minimum statutory employment rights in South Africa.', 'Example: Ensuring working hours do not exceed 45 hours per week as required by the BCEA.']
+    deposit: ['Deposit', 'Money paid at the start of an agreement as security or part payment.', 'Example: A tenant pays a deposit before moving into a rented home.'],
+    termination: ['Termination', 'Ending an agreement, usually by following the steps and notice period set out in it.', 'Example: Either party may end the service agreement by giving 30 days’ written notice.'],
+    indemnity: ['Indemnity', 'A promise in an agreement to cover certain losses or costs suffered by another party.', 'Example: A service provider agrees to cover losses caused by its negligent work.'],
+    'force majeure': ['Force majeure', 'An unexpected event outside a party’s control that may affect its ability to meet an agreement.', 'Example: A contract explains what happens if a natural disaster prevents delivery.'],
+    breach: ['Breach of contract', 'When a party does not do something the agreement requires them to do.', 'Example: A customer may be in breach if they do not pay by the agreed date.'],
+    'notice period': ['Notice period', 'The amount of time a party must give before ending an agreement or making a specified change.', 'Example: A lease may require one calendar month’s written notice.'],
+    liability: ['Liability', 'Legal responsibility for a loss, injury, or failure to meet an agreement.', 'Example: A clause may explain who is responsible if work causes damage.'],
+    confidentiality: ['Confidentiality', 'A duty to keep certain information private and only use or share it as the agreement allows.', 'Example: A worker agrees not to share a company’s private customer information.'],
+    'governing law': ['Governing law', 'The law that the agreement says will be used to interpret it.', 'Example: The agreement states that South African law applies.'],
+    testator: ['Testator', 'The person who makes a will and whose wishes it records.', 'Example: The testator signs the will in the presence of witnesses.'],
+    executor: ['Executor', 'The person appointed to manage an estate after someone dies and carry out the instructions in their will.', 'Example: The testator names a trusted person as executor.'],
+    bequest: ['Bequest', 'A gift of money, property, or another item left to someone in a will.', 'Example: The will leaves a specific amount of money as a bequest.']
 };
 
 // ------------------------------------------------------------------------------
@@ -310,8 +326,59 @@ function isAuthenticated() {
     return !!(p && p.name && p.name !== 'Guest' && (p.email || token));
 }
 
-const profile = () => getProfile() || { name: 'Member', email: '', tier: 'standard' };
+const profile = () => getProfile() || { name: 'Member', email: '', tier: 'free' };
+const accountTier = () => String(profile().tier || 'free').trim().toLowerCase();
+const hasPaidFeatures = () => /^(standard|premium)(?:$|[-_  ])/.test(accountTier());
+const hasPremiumFeatures = () => /^premium(?:$|[-_  ])/.test(accountTier());
+const planUsageKey = () => `lawcompass-plan-usage:${documentOwnerKey()}`;
+function getPlanUsage() {
+    try {
+        const usage = JSON.parse(localStorage.getItem(planUsageKey()) || '{}');
+        return {
+            uploads: Math.max(0, Number(usage.uploads) || 0),
+            explanations: Math.max(0, Number(usage.explanations) || 0)
+        };
+    }
+    catch (_) { return { uploads: 0, explanations: 0 }; }
+}
+function savePlanUsage(usage) {
+    try { localStorage.setItem(planUsageKey(), JSON.stringify(usage)); } catch (_) {}
+}
 const history = () => JSON.parse(localStorage.getItem('lawcompass-history') || localStorage.getItem('lawbuddy-history') || '[]');
+const documentOwnerKey = () => String(profile().id || profile().email || 'local-user').trim().toLowerCase();
+function openDocumentStore() {
+    return new Promise((resolve, reject) => {
+        if (!window.indexedDB) return reject(new Error('Document storage is unavailable in this browser.'));
+        const request = indexedDB.open('lawcompass-documents', 1);
+        request.onupgradeneeded = () => request.result.createObjectStore('documents', { keyPath: 'id' });
+        request.onsuccess = () => resolve(request.result);
+        request.onerror = () => reject(request.error);
+    });
+}
+async function saveUserDocument(record) {
+    const db = await openDocumentStore();
+    return new Promise((resolve, reject) => {
+        const tx = db.transaction('documents', 'readwrite');
+        tx.objectStore('documents').put({ ...record, owner: documentOwnerKey() });
+        tx.oncomplete = () => resolve(); tx.onerror = () => reject(tx.error);
+    });
+}
+async function listUserDocuments() {
+    const db = await openDocumentStore();
+    return new Promise((resolve, reject) => {
+        const request = db.transaction('documents').objectStore('documents').getAll();
+        request.onsuccess = () => resolve((request.result || []).filter(doc => doc.owner === documentOwnerKey()).sort((a,b) => b.updatedAt - a.updatedAt));
+        request.onerror = () => reject(request.error);
+    });
+}
+async function getUserDocument(id) {
+    const db = await openDocumentStore();
+    return new Promise((resolve, reject) => {
+        const request = db.transaction('documents').objectStore('documents').get(id);
+        request.onsuccess = () => resolve(request.result && request.result.owner === documentOwnerKey() ? request.result : null);
+        request.onerror = () => reject(request.error);
+    });
+}
 
 // Check authentication guard immediately on protected pages
 if (PROTECTED_PAGES.includes(page) && !isAuthenticated()) {
@@ -330,7 +397,7 @@ const nav = [
     ['legal-help.html', '⌁', 'Find legal help'],
     ['dictionary.html', '◌', 'Legal dictionary'],
     ['history.html', '◷', 'Document history'],
-    ['translate.html', '文', 'Plain-language helper'],
+    ['translate.html', '文', 'Translate contract terms'],
     ['pricing.html', '✦', 'Plans & premium']
 ];
 
@@ -430,6 +497,9 @@ function toast(message) {
     t.classList.add('show');
     setTimeout(() => t.classList.remove('show'), 3500);
 }
+function friendlyError(_error, fallback = 'Something went wrong. Please try again.') {
+    return fallback;
+}
 
 // ------------------------------------------------------------------------------
 // COMPASS IN-APP AI HELP ASSISTANT (South African Legal Guide)
@@ -445,7 +515,7 @@ function initCompassAssistant() {
     const widgetContainer = document.createElement('div');
     widgetContainer.id = 'compass-widget-root';
     widgetContainer.innerHTML = `
-        <button id="compass-fab" class="compass-fab" aria-label="Open Compass Legal Guide" title="Ask Compass (LawCompass AI Guide)">
+        <button id="compass-fab" class="compass-fab" aria-label="Open Compass Legal Guide" title="Ask Compass for help">
             <svg class="compass-fab-svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <circle cx="12" cy="12" r="10"></circle>
                 <polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76" fill="#c98d31"></polygon>
@@ -454,7 +524,7 @@ function initCompassAssistant() {
             <span class="compass-fab-pulse"></span>
         </button>
 
-        <div id="compass-drawer" class="compass-drawer" role="dialog" aria-label="Compass AI Legal Assistant" aria-hidden="true">
+        <div id="compass-drawer" class="compass-drawer" role="dialog" aria-label="Compass Legal Guide" aria-hidden="true">
             <div class="compass-header">
                 <div class="compass-title-area">
                     <div class="compass-avatar">
@@ -472,13 +542,13 @@ function initCompassAssistant() {
                     </div>
                 </div>
                 <div class="compass-header-actions">
-                    <span class="compass-engine-badge" id="compass-engine-badge">Gemini AI</span>
+                    <span class="compass-engine-badge" id="compass-engine-badge">LawCompass Guide</span>
                     <button class="compass-close-btn" id="compass-close-btn" aria-label="Close Compass">✕</button>
                 </div>
             </div>
             <div class="compass-notice-bar">
                 <span>South African Legal Information Only</span>
-                <span>POPIA Protected</span>
+                <span>Protect your privacy</span>
             </div>
             <div class="compass-body" id="compass-chat-body">
                 <div class="compass-msg compass-msg-assistant">
@@ -487,8 +557,8 @@ function initCompassAssistant() {
                     <div class="compass-chips-container">
                         <button class="compass-chip" data-prompt="How do I create an employment contract?">Employment Contract</button>
                         <button class="compass-chip" data-prompt="Can I make an electronic will on my phone?">Electronic Will Validity</button>
-                        <button class="compass-chip" data-prompt="How does cryptographic document locking work?">Document Locking</button>
-                        <button class="compass-chip" data-prompt="How do I find a verified attorney near me?">Find Attorneys</button>
+                        <button class="compass-chip" data-prompt="How do I lock a document?">Document Locking</button>
+                        <button class="compass-chip" data-prompt="How do I find legal help near me?">Find Legal Help</button>
                         <button class="compass-chip" data-prompt="How does the plain-language explainer work?">Plain-Language Explainer</button>
                     </div>
                 </div>
@@ -509,7 +579,7 @@ function initCompassAssistant() {
                     <button type="submit" class="compass-send-btn" id="compass-send-btn" aria-label="Send Message">➤</button>
                 </form>
                 <div class="compass-disclaimer">
-                    General legal information only · Wills require 2 in-person witnesses · Never legal advice
+                    General legal information only · Not legal advice
                 </div>
             </div>
         </div>
@@ -563,7 +633,7 @@ function initCompassAssistant() {
             actionLinks += '<a class="compass-action-link" href="history.html">Document History →</a>';
         }
         if (/Plain-Language|Explain Text|Upload Contract/i.test(raw)) {
-            actionLinks += '<a class="compass-action-link" href="translate.html">Plain-Language Helper →</a>';
+            actionLinks += '<a class="compass-action-link" href="translate.html">Translate contract terms →</a>';
         }
         if (/Legal Dictionary/i.test(raw)) {
             actionLinks += '<a class="compass-action-link" href="dictionary.html">Legal Dictionary →</a>';
@@ -653,7 +723,7 @@ function initCompassAssistant() {
             } catch(e) {}
 
             if (data.engine && engineBadge) {
-                engineBadge.textContent = data.engine.includes('gemini') ? 'Gemini AI' : (data.engine.includes('hugging') ? 'Hugging Face' : 'Compass Brain');
+                engineBadge.textContent = 'LawCompass Guide';
             }
 
             appendAssistantMessage(formatMessageText(data.reply));
@@ -685,19 +755,20 @@ function cards() {
             <span class="icon">▣</span>
             <h3>${t.title}</h3>
             <p>${t.desc}</p>
+        <p>Laws that may apply: ${t.laws.map(([name, url]) => `<span class="law-link" onclick="event.preventDefault();event.stopPropagation();window.open('${url}','_blank','noopener,noreferrer')">${name} ↗</span>`).join(' · ')}</p>
+        ${t.lawNote ? `<p>${t.lawNote}</p>` : ''}
             <footer>Configure & generate draft →</footer>
         </a>
     `).join('')}</div>`;
 }
 
 function dashboard() {
-    const docsCount = history().length;
     shell('Workspace Overview', `
         <section class="hero">
             <div>
                 <p class="eyebrow">LAWCOMPASS LEGAL WORKSPACE</p>
                 <h1>Legal documents, without the legal fog.</h1>
-                <p>Generate South African compliant contracts, personalize bespoke clauses, lock finalized agreements with SHA-256 seals, and find nearby attorneys.</p>
+                <p>Prepare a first draft from a South African template, personalize its terms, save your documents, and find nearby legal help.</p>
                 <a class="primary" href="documents.html">Create a document <span>→</span></a>
             </div>
             <div class="hero-art">
@@ -712,15 +783,15 @@ function dashboard() {
         <div class="stats">
             <article>
                 <span>◷</span>
-                <div><b>${docsCount}</b><small>Drafts & Documents</small></div>
+                <div><b id="document-count">0</b><small>Drafts & Documents</small></div>
             </article>
             <article>
                 <span>▣</span>
                 <div><b>5</b><small>Official SA Templates</small></div>
             </article>
             <article>
-                <span>🔒</span>
-                <div><b>SHA-256</b><small>Tamper-Proof Locking</small></div>
+                <span>▣</span>
+                <div><b>Document Lock</b><small>Available with every plan</small></div>
             </article>
         </div>
 
@@ -734,7 +805,7 @@ function dashboard() {
         <div class="action-grid">
             <a href="documents.html">
                 <b>▣</b>
-                <span><strong>Create a document</strong><small>Guided contracts with custom clauses</small></span>
+                <span><strong>Create a document</strong><small>Guided forms for common legal documents</small></span>
                 <i>→</i>
             </a>
             <a href="legal-help.html">
@@ -744,18 +815,19 @@ function dashboard() {
             </a>
             <a href="upload-contract.html">
                 <b>↥</b>
-                <span><strong>Upload & explain contract</strong><small>AI plain-English clause breakdown</small></span>
+                <span><strong>Upload & explain contract</strong><small>${hasPremiumFeatures() ? 'Get a plain-language explanation' : accountTier() === 'standard' ? 'Available with Premium' : '2 uploads and 5 explanations on the free plan'}</small></span>
                 <i>→</i>
             </a>
         </div>
     `);
+    listUserDocuments().then(items => { const count = $('#document-count'); if (count) count.textContent = items.length; }).catch(() => {});
 }
 
 function documents() {
     shell('Create a document', `
         <p class="eyebrow">DOCUMENT TEMPLATES</p>
         <h1>Select a legal template</h1>
-        <p class="intro">Each template is tailored for South African law. Answer the questions, add custom clauses to personalize your terms, and lock your document once generated.</p>
+        <p class="intro">Templates are a starting point and may not fit every situation. Review dates are not shown here. Have important drafts checked by a qualified legal professional before signing.</p>
         ${cards()}
     `);
 }
@@ -969,9 +1041,12 @@ async function generatePopulatedDocx(templateKey, placeholderMap) {
     return docxBlob;
 }
 
-function builder() {
-    const type = new URLSearchParams(location.search).get('type') || 'Employment';
+async function builder() {
+    const params = new URLSearchParams(location.search);
+    const type = params.get('type') || 'Employment';
+    const editId = params.get('edit');
     const t = data[type] || data.Employment;
+    const canCustomize = hasPaidFeatures();
 
     // Track active custom clauses
     let customClauses = [];
@@ -982,9 +1057,11 @@ function builder() {
         <a class="back" href="documents.html">← Back to templates</a>
         <div class="builder-head">
             <div>
-                <p class="eyebrow">DOCUMENT GENERATOR · POPIA COMPLIANT</p>
+                <p class="eyebrow">${editId ? 'UPDATE SAVED DOCUMENT' : 'DOCUMENT GENERATOR'}</p>
                 <h1>${t.title}</h1>
                 <p>${t.desc}</p>
+                <p>Laws that may apply: ${t.laws.map(([name, url]) => `<a class="link" href="${url}" target="_blank" rel="noopener noreferrer">${name} ↗</a>`).join(' · ')}</p>
+                ${t.lawNote ? `<p>${t.lawNote}</p>` : ''}
             </div>
             <span class="step">Official South African Jurisdiction</span>
         </div>
@@ -993,20 +1070,14 @@ function builder() {
         <div id="lock-banner" class="lock-control-container" style="display:none;">
             <div class="lock-header-row">
                 <div class="lock-status-badge ${isLocked ? 'locked' : 'unlocked'}" id="lock-badge-ui">
-                    <span>${isLocked ? '🔒 LOCKED & FINALIZED' : '🔓 DRAFT STATE'}</span>
+                    <span>${isLocked ? 'LOCKED' : 'DRAFT'}</span>
                 </div>
                 <button type="button" id="btn-toggle-lock" class="btn-lock-toggle ${isLocked ? 'btn-unlock-action' : 'btn-lock-action'}">
-                    ${isLocked ? 'Unlock for Revisions' : '🔒 Lock & Finalize Document'}
+                    ${isLocked ? 'Unlock to edit' : 'Lock draft'}
                 </button>
             </div>
             <div id="lock-details-box" style="display:none;">
-                <p style="margin: 12px 0 6px; font-weight:700; color:#1e3a5f;">Cryptographic Tamper-Evident Verification Seal:</p>
-                <div id="lock-hash-val" class="lock-hash-display"></div>
-                <div class="lock-meta-row">
-                    <span id="lock-timestamp"></span>
-                    <span>Status: Immutable Legal Instrument</span>
-                    <span>Vault: POPIA Compliant Local Record</span>
-                </div>
+                <p style="margin: 12px 0 6px; font-weight:700; color:#1e3a5f;">This draft is locked from editing. Unlock it to make changes.</p>
             </div>
         </div>
 
@@ -1020,8 +1091,9 @@ function builder() {
                 </fieldset>
             `).join('')}
 
-            <!-- Personalize Contract: Custom Clauses & Terms Studio -->
+            <!-- Custom clauses are available with paid plans. -->
             <div class="custom-clause-section">
+                ${canCustomize ? `
                 <div style="display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:10px;">
                     <div>
                         <h3>Personalize Your Contract (Custom Terms & Conditions)</h3>
@@ -1050,35 +1122,62 @@ function builder() {
                         + Add Custom Clause to Document
                     </button>
                 </div>
+                ` : `
+                    <h3>Custom clauses</h3>
+                    <p>Adding or changing custom clauses is available with a paid plan. Your existing saved clauses, if any, will stay in this document.</p>
+                    <div id="custom-clauses-container" class="custom-clauses-list"></div>
+                    <a class="link" href="pricing.html">View plan details</a>
+                `}
             </div>
 
             <p class="form-note">
-                <strong>Legal Notice:</strong> This guided legal document preparation tool complies with South African drafting standards. For complex commercial arrangements or disputes, consult a qualified attorney.
+                <strong>Legal notice:</strong> This is general information and a document starting point, not legal advice. Check that the draft fits your situation. For complex matters or disputes, speak to a qualified legal practitioner or <a href="https://legal-aid.co.za/" target="_blank" rel="noopener noreferrer">Legal Aid South Africa</a>.
             </p>
 
             <div class="builder-actions" style="grid-column: 1 / -1; display:flex; gap:14px; justify-content:flex-end;">
                 <button type="button" id="btn-lock-direct" class="secondary" style="display:flex; align-items:center; gap:8px;">
-                    🔒 Lock Draft
+                    Lock draft
                 </button>
                 <button type="submit" class="primary" style="display:flex; align-items:center; gap:8px;">
-                    Download Contract (.docx) <span>↓</span>
+                    ${editId ? 'Download updated contract' : 'Download contract'} (.docx) <span>↓</span>
                 </button>
             </div>
         </form>
     `);
 
+    let priorDocument = null;
+    if (editId) {
+        try {
+            priorDocument = await getUserDocument(editId);
+            if (priorDocument && priorDocument.type === type) {
+                $$('.form-field', $('#build-form')).forEach(field => {
+                    const label = field.querySelector('span')?.textContent.replace('*', '').trim();
+                    const control = field.querySelector('input:not([type=checkbox]), textarea, select');
+                    if (control && Object.prototype.hasOwnProperty.call(priorDocument.answers || {}, label)) control.value = priorDocument.answers[label];
+                    $$('input[type=checkbox]', field).forEach(input => {
+                        const saved = (priorDocument.answers?.[label] || '').split(', ');
+                        input.checked = saved.includes(input.value) || (input.value === 'on' && saved.includes('Confirmed'));
+                    });
+                });
+                customClauses = Array.isArray(priorDocument.customClauses) ? [...priorDocument.customClauses] : [];
+                isLocked = !!priorDocument.isLocked;
+                lockSeal = priorDocument.lockSeal || null;
+            }
+        } catch (_) { toast('We could not open that saved document. Please try again.'); }
+    }
+
     // Render custom clauses
     const renderClauses = () => {
         const container = $('#custom-clauses-container');
         if (!customClauses.length) {
-            container.innerHTML = '<p style="color:var(--muted); font-size:13px; font-style:italic; margin:8px 0;">No personalized custom clauses added yet. Click a preset above or add a bespoke clause below.</p>';
+            container.innerHTML = `<p style="color:var(--muted); font-size:13px; font-style:italic; margin:8px 0;">${canCustomize ? 'No personalized custom clauses added yet. Choose a suggested clause or write your own.' : 'No saved custom clauses in this document.'}</p>`;
             return;
         }
         container.innerHTML = customClauses.map((c, i) => `
             <div class="custom-clause-item">
                 <div class="clause-item-head">
                     <h4 class="clause-item-title">${i + 1}. ${esc(c.title)}</h4>
-                    ${!isLocked ? `<button type="button" class="btn-delete-clause" data-del="${i}">✕ Remove</button>` : ''}
+                    ${canCustomize && !isLocked ? `<button type="button" class="btn-delete-clause" data-del="${i}">Remove</button>` : ''}
                 </div>
                 <div class="clause-item-body">${esc(c.body)}</div>
             </div>
@@ -1101,7 +1200,7 @@ function builder() {
     });
 
     // Add bespoke clause
-    $('#btn-add-bespoke').onclick = () => {
+    if (canCustomize) $('#btn-add-bespoke').onclick = () => {
         if (isLocked) return toast('Document is locked. Unlock to add clauses.');
         const titleInput = $('#new-clause-title');
         const bodyInput = $('#new-clause-body');
@@ -1168,33 +1267,19 @@ function builder() {
             banner.classList.add('is-locked');
             form.classList.add('document-locked-readonly');
             badge.className = 'lock-status-badge locked';
-            badge.innerHTML = '<span>🔒 LOCKED & FINALIZED</span>';
+            badge.innerHTML = '<span>LOCKED</span>';
             toggleBtn.className = 'btn-lock-toggle btn-unlock-action';
             toggleBtn.textContent = 'Unlock for Revisions';
 
             details.style.display = 'block';
-            $('#lock-hash-val').textContent = lockSeal.hash;
-            $('#lock-timestamp').textContent = `Locked on: ${lockSeal.date} SAST`;
-
-            // Save locked document into history
-            const h = history();
-            h.unshift({
-                name: t.title,
-                type: type,
-                date: lockSeal.date,
-                isLocked: true,
-                lockHash: lockSeal.hash
-            });
-            localStorage.setItem('lawcompass-history', JSON.stringify(h));
-
-            toast('Document locked! Cryptographic tamper seal generated.');
+            toast('Document locked. Unlock it if you need to make changes.');
         } else {
             banner.classList.remove('is-locked');
             form.classList.remove('document-locked-readonly');
             badge.className = 'lock-status-badge unlocked';
-            badge.innerHTML = '<span>🔓 DRAFT STATE (Unlocked)</span>';
+            badge.innerHTML = '<span>DRAFT</span>';
             toggleBtn.className = 'btn-lock-toggle btn-lock-action';
-            toggleBtn.textContent = '🔒 Lock & Finalize Document';
+            toggleBtn.textContent = 'Lock draft';
             details.style.display = 'none';
             toast('Document unlocked for revisions.');
         }
@@ -1203,6 +1288,7 @@ function builder() {
 
     $('#btn-toggle-lock').onclick = () => applyLockState(!isLocked);
     $('#btn-lock-direct').onclick = () => applyLockState(true);
+    if (isLocked) applyLockState(true);
 
     // Form submit -> generate authentic DOCX
     $('#build-form').onsubmit = async e => {
@@ -1211,61 +1297,34 @@ function builder() {
         const placeholderMap = getPlaceholderMap(type, answers, customClauses);
 
         try {
-            toast('Populating official Word template with your details...');
+            toast('Preparing your Word document...');
             const docxBlob = await generatePopulatedDocx(type, placeholderMap);
 
-            // Trigger file download
+            // Keep the completed file and form values in the signed-in user's browser history.
+            const id = crypto.randomUUID ? crypto.randomUUID() : `${Date.now()}-${Math.random().toString(16).slice(2)}`;
+            const record = {
+                id, name: t.title, type, answers, customClauses: [...customClauses], file: docxBlob,
+                isLocked, lockSeal, createdAt: priorDocument?.createdAt || Date.now(), updatedAt: Date.now(),
+                date: new Date().toLocaleString('en-ZA')
+            };
+            await saveUserDocument(record);
+            priorDocument = record;
+
             const url = URL.createObjectURL(docxBlob);
             const a = document.createElement('a');
             a.href = url;
             a.download = `${t.title.replaceAll(' ', '_')}_LawCompass.docx`;
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
-            URL.revokeObjectURL(url);
-
-            // Add to history
-            const h = history();
-            h.unshift({
-                name: t.title,
-                type: type,
-                date: new Date().toLocaleString('en-ZA'),
-                isLocked: isLocked,
-                lockHash: lockSeal ? lockSeal.hash : null
-            });
-            localStorage.setItem('lawcompass-history', JSON.stringify(h));
+            document.body.appendChild(a); a.click(); document.body.removeChild(a);
+            setTimeout(() => URL.revokeObjectURL(url), 1000);
 
             // Show lock banner if not locked yet
             if (!isLocked) {
                 $('#lock-banner').style.display = 'block';
             }
 
-            toast('Official .docx contract generated and downloaded!');
+            toast('Your document was downloaded and saved to Document History.');
         } catch (err) {
-            console.error('Docx generation error:', err);
-            // Fallback for file:// protocol where fetch is blocked
-            toast('Downloading formatted document draft...');
-            const html = `
-                <meta charset="utf-8">
-                <style>
-                    body { font-family: Georgia, serif; max-width: 750px; margin: 40px auto; line-height: 1.6; }
-                    h1 { text-align: center; color: #14223b; }
-                    .seal { border: 2px solid #2d7568; background: #f0f7f4; padding: 15px; border-radius: 6px; margin: 20px 0; }
-                    table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-                    td { padding: 10px; border-bottom: 1px solid #ddd; }
-                    b { color: #14223b; }
-                </style>
-                <h1>${esc(t.title)}</h1>
-                <p>Prepared via LawCompass on ${new Date().toLocaleDateString('en-ZA')}. Jurisdiction: Republic of South Africa.</p>
-                ${isLocked ? `<div class="seal"><b>🔒 LOCKED & FINALIZED</b><br>Verification Hash: ${lockSeal ? lockSeal.hash : 'VERIFIED'}</div>` : ''}
-                <table>
-                    ${Object.entries(placeholderMap).map(([k, v]) => `<tr><td><b>${esc(k)}</b></td><td>${esc(v)}</td></tr>`).join('')}
-                </table>
-            `;
-            const a = document.createElement('a');
-            a.href = URL.createObjectURL(new Blob([html], { type: 'application/msword' }));
-            a.download = `${t.title.replaceAll(' ', '_')}.doc`;
-            a.click();
+            toast(err.message?.includes('storage') ? 'Your document could not be saved. Check available browser storage and try again.' : 'We could not create the Word document. Please try again.');
         }
     };
 }
@@ -1287,9 +1346,9 @@ function help() {
     let searchSequence = 0;
 
     shell('Find Legal Help', `
-        <p class="eyebrow">VERIFIED LEGAL AID & NEARBY PRACTITIONERS</p>
+        <p class="eyebrow">LEGAL AID & NEARBY PRACTITIONERS</p>
         <h1>Find legal help by proximity</h1>
-        <p class="intro">Discover statutory Legal Aid South Africa offices and nearby South African legal practices ranked by geographical proximity. The closest legal services appear first with verified office contact details.</p>
+        <p class="intro">Find Legal Aid South Africa offices and discover nearby legal practices. Private practice listings are discovery information; check a practitioner's details with the Legal Practice Council before engaging them.</p>
 
         <!-- Proximity Control Panel -->
         <div class="proximity-control-panel">
@@ -1336,7 +1395,7 @@ function help() {
             <!-- Active Origin & Privacy Disclosure Bar -->
             <div class="search-origin-bar" id="search-origin-bar">
                 <span class="origin-tag">Searching near: <strong>${esc(locationLabel)}</strong> (within ${currentRadius} km)</span>
-                <span class="privacy-tag">Privacy Protected · Approximate query only · Case details never shared</span>
+                <span class="privacy-tag">Location is used to find nearby help · No case details needed</span>
             </div>
         </div>
 
@@ -1366,7 +1425,7 @@ function help() {
         if (bar) {
             bar.innerHTML = `
                 <span class="origin-tag">Searching near: <strong>${esc(locationLabel)}</strong> (within ${currentRadius} km)</span>
-                <span class="privacy-tag">Privacy Protected · Approximate query only · Case details never shared</span>
+                <span class="privacy-tag">Location is used to find nearby help · No case details needed</span>
             `;
         }
     };
@@ -1388,7 +1447,7 @@ function help() {
         container.innerHTML = `
             <div class="firms-loading-state">
                 <span class="loading-spinner"></span>
-                <p>Searching verified Legal Aid offices and nearby legal practitioners...</p>
+                <p>Searching Legal Aid offices and nearby legal practitioners...</p>
                 <small style="color:var(--muted);">Querying proximity within ${currentRadius} km</small>
             </div>
         `;
@@ -1540,7 +1599,7 @@ function help() {
                 <div class="empty-state error-state">
                     <span class="empty-icon" style="color:#d9534f;">!</span>
                     <h3>Unable to load legal help directory</h3>
-                    <p>${esc(err.message || 'An error occurred while communicating with the proximity directory provider.')}</p>
+                    <p>Check your connection and try again. If the problem continues, please come back later.</p>
                     <p style="margin-top:10px; font-size:13px; color:var(--muted);">
                         You can retry the search or select an alternative city center.
                     </p>
@@ -1739,9 +1798,8 @@ function showDeviceLocationModal(onDecision) {
                 LawCompass uses your device's approximate location solely to calculate travel distances to nearby Legal Aid offices and legal practices.
             </p>
             <ul style="padding-left:18px; margin:14px 0; color:#5d6a7e; font-size:13px; line-height:1.7;">
-                <li>Your coordinates are used strictly in real-time for distance ranking.</li>
-                <li>Precise coordinates are <strong>never stored</strong> in our databases or profile logs.</li>
-                <li>Your case details are never shared with external directory services.</li>
+                <li>Your location is used to find nearby legal help.</li>
+                <li>You do not need to share private case details to search.</li>
             </ul>
             <div style="display:flex; justify-content:flex-end; gap:10px; margin-top:22px;">
                 <button type="button" class="secondary" id="btn-cancel-geo">Cancel (Use City Preset)</button>
@@ -1788,7 +1846,7 @@ function showConsultationModal(firm, matter) {
             ` : `
                 <div class="consultation-notice-box notice-preview">
                     <strong>Demonstration Preview:</strong>
-                    <p>Automated direct referral dispatch is currently in demonstration mode. To consult with this practice, please contact them directly using their verified telephone number or office address listed below.</p>
+                    <p>LawCompass does not send consultation requests for you. Contact the practice directly using the details below, and check practitioner credentials with the Legal Practice Council.</p>
                 </div>
             `}
 
@@ -1862,16 +1920,16 @@ function pricing() {
 
     const renderPricing = () => {
         const isAnnual = billingCycle === 'annual';
-        const standardPrice = isAnnual ? 'R79' : 'R99';
-        const premiumPrice = isAnnual ? 'R159' : 'R199';
-        const standardPeriod = isAnnual ? '/ month (billed R948/yr)' : '/ month';
-        const premiumPeriod = isAnnual ? '/ month (billed R1,908/yr)' : '/ month';
+        const standardPrice = isAnnual ? 'R374' : 'R39';
+        const premiumPrice = 'R3,000–R15,000';
+        const standardPeriod = isAnnual ? '/ month (billed R374/yr)' : '/ month (indicative)';
+        const premiumPeriod = '/ month (indicative organisation package)';
 
         shell('Plans & Premium Benefits', `
             <div class="pricing-header-wrap">
-                <p class="eyebrow">TRANSPARENT VALUE · SOUTH AFRICAN LEGAL TECH</p>
-                <h1>Empower your legal work with Premium</h1>
-                <p class="intro" style="margin: 0 auto;">Choose the right level of protection. Enjoy unlimited document generation, AI contract uploads, cryptographic tamper-evident locking, and proximity legal matching.</p>
+                <p class="eyebrow">PLANS · SOUTH AFRICAN LEGAL INFORMATION</p>
+                <h1>Plans for individuals and organisations</h1>
+                <p class="intro" style="margin: 0 auto;">Compare the options shown here. Document locking is available while preparing any draft.</p>
 
                 <div class="billing-switcher">
                     <button type="button" class="${!isAnnual ? 'active' : ''}" id="btn-monthly">Monthly Billing</button>
@@ -1888,14 +1946,14 @@ function pricing() {
                         <span class="plan-price-val">R0</span>
                         <span class="plan-price-period">/ forever</span>
                     </div>
-                    <p class="plan-desc">Essential drafting and dictionary exploration for basic needs.</p>
+                    <p class="plan-desc">Draft documents, save them in your history and explore the legal dictionary.</p>
                     <ul class="plan-benefits-list">
                         <li><b>✓</b> 5 standard document templates</li>
                         <li><b>✓</b> Plain-English legal dictionary</li>
-                        <li><b>✓</b> Browser-local draft storage</li>
-                        <li><b>✗</b> <span style="color:#94a3b8">Contract file uploads</span></li>
-                        <li><b>✗</b> <span style="color:#94a3b8">Document locking & SHA-256 seal</span></li>
-                        <li><b>✗</b> <span style="color:#94a3b8">Custom terms & clauses</span></li>
+                        <li><b>✓</b> Saved document history</li>
+                        <li><b>✓</b> Document locking</li>
+                        <li><b>✓</b> Upload up to 2 contracts (PDF, DOCX or TXT)</li>
+                        <li><b>✓</b> Get up to 5 contract explanations</li>
                     </ul>
                     <button type="button" class="plan-cta-btn secondary" disabled>Current Plan</button>
                 </article>
@@ -1907,34 +1965,32 @@ function pricing() {
                         <span class="plan-price-val">${standardPrice}</span>
                         <span class="plan-price-period">${standardPeriod}</span>
                     </div>
-                    <p class="plan-desc">For growing small businesses, freelancers, and individuals.</p>
+                    <p class="plan-desc">Indicative plan for individuals and small businesses. Payment and listed paid features are not available yet.</p>
                     <ul class="plan-benefits-list">
                         <li><b>✓</b> <strong>Unlimited document creation</strong></li>
-                        <li class="pro-feature"><b>✓</b> <strong>Document Locking (SHA-256 tamper seal)</strong></li>
                         <li class="pro-feature"><b>✓</b> <strong>Personalize Contract (Custom clauses studio)</strong></li>
                         <li><b>✓</b> Clean Microsoft Word (.docx) & PDF exports</li>
-                        <li><b>✓</b> Email support within 24 hours</li>
-                        <li><b>✗</b> <span style="color:#94a3b8">AI contract reader uploads</span></li>
+                        <li><b>✓</b> Planned: customer support</li>
                     </ul>
                     <button type="button" class="plan-cta-btn primary pay-trigger" data-plan="standard">Choose Standard</button>
                 </article>
 
                 <!-- Premium Enterprise -->
                 <article class="plan-box popular">
-                    <span class="popular-flag">⭐ MOST POPULAR</span>
+                    <span class="popular-flag">MOST POPULAR</span>
                     <p class="plan-tier-name" style="color:#9d6924;">PREMIUM ENTERPRISE</p>
                     <div class="plan-price-row">
                         <span class="plan-price-val">${premiumPrice}</span>
                         <span class="plan-price-period">${premiumPeriod}</span>
                     </div>
-                    <p class="plan-desc">Complete legal confidence with AI analysis and verified attorney access.</p>
+                    <p class="plan-desc">Indicative package for legal insurance providers. Payment and listed features are not available yet.</p>
                     <ul class="plan-benefits-list">
                         <li class="pro-feature"><b>✓</b> <strong>Everything in Standard Pro</strong></li>
-                        <li class="pro-feature"><b>✓</b> <strong>Upload Contracts (PDF, DOCX) & AI Explainer</strong></li>
-                        <li class="pro-feature"><b>✓</b> <strong>Clause-by-clause risk & trap detection</strong></li>
-                        <li class="pro-feature"><b>✓</b> <strong>Proximity Attorney Matching & Priority Consultations</strong></li>
-                        <li class="pro-feature"><b>✓</b> <strong>POPIA, BCEA & CPA Compliance Audit Pack</strong></li>
-                        <li class="pro-feature"><b>✓</b> <strong>Encrypted Supabase Cloud Vault</strong></li>
+                        <li class="pro-feature"><b>✓</b> <strong>Contract upload and clause explanation</strong></li>
+                        <li class="pro-feature"><b>✓</b> <strong>Planned: additional document guidance</strong></li>
+                        <li class="pro-feature"><b>✓</b> <strong>Find nearby legal help</strong></li>
+                        <li class="pro-feature"><b>✓</b> <strong>Planned: expanded legal resources</strong></li>
+                        <li class="pro-feature"><b>✓</b> <strong>Online document storage planned</strong></li>
                     </ul>
                     <button type="button" class="plan-cta-btn primary pay-trigger" data-plan="premium" style="background:#14223b !important; color:#fff !important;">Get Premium Enterprise</button>
                 </article>
@@ -1961,45 +2017,41 @@ function pricing() {
                         </tr>
                         <tr>
                             <td><strong>Upload Contracts (PDF, DOCX, TXT)</strong></td>
-                            <td><span class="check-no">—</span></td>
-                            <td><span class="check-no">—</span></td>
+                            <td>Up to 2 documents</td>
+                            <td>Not included</td>
                             <td><span class="check-yes">✓ Included</span></td>
                         </tr>
                         <tr>
-                            <td><strong>AI Plain-English Clause Explainer</strong></td>
-                            <td><span class="check-no">—</span></td>
-                            <td><span class="check-no">—</span></td>
+                            <td><strong>Contract explanations</strong></td>
+                            <td>Up to 5 explanations</td>
+                            <td>Not included</td>
                             <td><span class="check-yes">✓ Included</span></td>
                         </tr>
                         <tr>
-                            <td><strong>Cryptographic Document Locking (SHA-256)</strong></td>
-                            <td><span class="check-no">—</span></td>
+                            <td><strong>Document locking</strong></td>
+                            <td><span class="check-yes">✓ Included</span></td>
                             <td><span class="check-yes">✓ Included</span></td>
                             <td><span class="check-yes">✓ Included</span></td>
                         </tr>
                         <tr>
                             <td><strong>Personalize Contract (Custom Clauses Studio)</strong></td>
-                            <td><span class="check-no">—</span></td>
+                            <td>Not included</td>
                             <td><span class="check-yes">✓ Included</span></td>
                             <td><span class="check-yes">✓ Included</span></td>
                         </tr>
                         <tr>
-                            <td><strong>Proximity-Sorted Law Firm Referrals</strong></td>
-                            <td>Basic directory</td>
-                            <td>Basic directory</td>
-                            <td><span class="check-yes">✓ Priority Match & Booking</span></td>
+                            <td><strong>Legal help directory</strong></td>
+                            <td>Included</td><td>Included</td><td>Included</td>
                         </tr>
                         <tr>
-                            <td>Encrypted Cloud Vault (Private signed URLs)</td>
-                            <td>Local only</td>
-                            <td>Local only</td>
-                            <td><span class="check-yes">✓ Supabase Cloud</span></td>
+                            <td>Document history in this browser</td>
+                            <td>Included</td><td>Included</td><td>Included</td>
                         </tr>
                         <tr>
-                            <td>Statutory Compliance Checks (POPIA, BCEA)</td>
-                            <td><span class="check-no">—</span></td>
-                            <td>Standard</td>
-                            <td><span class="check-yes">✓ Comprehensive</span></td>
+                            <td>Legal review of templates</td>
+                            <td>Review status not shown</td>
+                            <td>Review status not shown</td>
+                            <td>Review status not shown</td>
                         </tr>
                     </tbody>
                 </table>
@@ -2026,24 +2078,24 @@ function showCheckoutModal(planName) {
     modal.innerHTML = `
         <div class="checkout-modal-box">
             <button class="modal-close-btn" id="modal-close">✕</button>
-            <p class="eyebrow">SECURE CHECKOUT · INSTANT ACTIVATION</p>
+            <p class="eyebrow">PLAN PREVIEW</p>
             <h3>Upgrade to ${esc(planName)}</h3>
-            <p>PCI-compliant South African Rand payment processing. Powered by secure 256-bit TLS encryption.</p>
+            <p>Payment setup is not available yet. This plan preview does not take a payment.</p>
             <div style="background:#f8fafc; border:1px solid #e2e8f0; padding:16px; border-radius:6px; margin:18px 0;">
                 <div style="display:flex; justify-content:space-between; margin-bottom:8px;">
                     <span>Plan:</span>
                     <b>${esc(planName)}</b>
                 </div>
                 <div style="display:flex; justify-content:space-between; margin-bottom:8px;">
-                    <span>Security:</span>
-                    <span>256-bit TLS Encrypted</span>
+                    <span>Payment:</span>
+                    <span>Not available yet</span>
                 </div>
                 <div style="display:flex; justify-content:space-between; color:#216657; font-weight:700;">
-                    <span>Instant Activation:</span>
-                    <span>All Premium Benefits Unlocked</span>
+                    <span>Status:</span>
+                    <span>Plan preview only</span>
                 </div>
             </div>
-            <button class="primary wide" id="confirm-upgrade-btn">Activate ${esc(planName)} Now</button>
+            <button class="primary wide" id="confirm-upgrade-btn">Close plan preview</button>
         </div>
     `;
     document.body.appendChild(modal);
@@ -2051,10 +2103,7 @@ function showCheckoutModal(planName) {
     modal.querySelector('#modal-close').onclick = () => document.body.removeChild(modal);
     modal.querySelector('#confirm-upgrade-btn').onclick = () => {
         document.body.removeChild(modal);
-        const p = profile();
-        p.tier = planName.toLowerCase().includes('premium') ? 'premium' : 'standard';
-        localStorage.setItem('lawcompass-profile', JSON.stringify(p));
-        toast(`Success! Your account is now upgraded to ${planName}.`);
+        toast('Paid plans are not available yet.');
     };
 }
 
@@ -2072,20 +2121,31 @@ function plainClause(clause) {
 }
 
 function upload() {
+    const freePlan = accountTier() === 'free';
+    if (!freePlan && !hasPremiumFeatures()) {
+        shell('Upload & Explain Contract', `
+            <p class="eyebrow">CONTRACT READER & CLAUSE EXPLAINER</p>
+            <h1>Upload a contract</h1>
+            <div class="empty-state"><h3>This feature is not included with your current plan</h3><p>Contract uploads and explanations are available on the free plan with limited use, or without a limit on Premium.</p><a class="primary" href="pricing.html">View plan details</a></div>
+        `);
+        return;
+    }
+    const usage = getPlanUsage();
     shell('Upload & Explain Contract', `
         <p class="eyebrow">CONTRACT READER & CLAUSE EXPLAINER</p>
         <h1>Upload a contract</h1>
-        <p class="intro">Upload a text agreement, PDF, or paste legal clauses. LawCompass identifies key clauses, flags unfair terms, and provides clear plain-English translations.</p>
+        <p class="intro">Upload a document or paste a clause to get a basic plain-language reading guide. ${freePlan ? 'The free plan includes 2 uploads and 5 explanations.' : 'Your Premium plan includes unlimited uploads and explanations.'} The tool highlights common wording patterns; it cannot decide whether a term is unfair or legally suitable.</p>
 
         <div class="upload-layout">
             <section class="upload-card">
                 <label class="dropzone" for="contract-file">
                     <span>↥</span>
                     <b>Upload contract file</b>
-                    <small>PDF, DOCX, DOC, RTF, ODT, TXT, Markdown, HTML, and CSV accepted.</small>
-                    <input id="contract-file" type="file" accept=".pdf,.doc,.docx,.rtf,.odt,.txt,.md,.html,.htm,.csv">
+                    <small>${freePlan ? 'The free plan accepts PDF, DOCX and TXT.' : 'PDF, DOCX, DOC, RTF, ODT, TXT, Markdown, HTML, and CSV accepted.'}</small>
+                    <input id="contract-file" type="file" accept="${freePlan ? '.pdf,.docx,.txt' : '.pdf,.doc,.docx,.rtf,.odt,.txt,.md,.html,.htm,.csv'}">
                 </label>
                 <p id="upload-status" class="upload-status">Your file is processed privately in your browser.</p>
+                ${freePlan ? '<p id="plan-usage" class="form-note"></p>' : ''}
 
                 <label class="paste-label">
                     Contract or clause text
@@ -2100,23 +2160,45 @@ function upload() {
                 <div id="contract-explanation" class="reader-empty">
                     <span>◌</span>
                     <h3>Ready when you are</h3>
-                    <p>Upload a file or paste text to receive a plain-English clause breakdown and practical reading alerts.</p>
+                    <p>Upload a file or paste text to see common clauses and a basic explanation of their wording.</p>
                 </div>
             </section>
         </div>
 
         <p class="form-note">
-            This automated reader is an educational aid and does not constitute formal legal advice. For contentious disputes, consult a registered legal practitioner.
+            This reading guide may miss important details and is not legal advice. For a dispute or an important decision, speak with a qualified legal practitioner or Legal Aid South Africa.
         </p>
     `);
 
     const file = $('#contract-file');
     const text = $('#contract-text');
     const status = $('#upload-status');
+    const updatePlanUsage = () => {
+        const counter = $('#plan-usage');
+        if (counter) counter.textContent = `Free plan: ${Math.max(0, 2 - usage.uploads)} of 2 uploads and ${Math.max(0, 5 - usage.explanations)} of 5 explanations remaining.`;
+    };
+    updatePlanUsage();
 
     file.onchange = () => {
         const selected = file.files[0];
         if (!selected) return;
+
+        if (freePlan && !/\.(pdf|docx|txt)$/i.test(selected.name)) {
+            file.value = '';
+            status.textContent = 'The free plan accepts PDF, DOCX and TXT files.';
+            return;
+        }
+        if (freePlan && usage.uploads >= 2) {
+            file.value = '';
+            status.textContent = 'You have used the 2 contract uploads included with the free plan.';
+            toast('Free plan upload limit reached. View Plans for available options.');
+            return;
+        }
+        if (freePlan) {
+            usage.uploads += 1;
+            savePlanUsage(usage);
+            updatePlanUsage();
+        }
 
         status.textContent = `Processing ${selected.name}...`;
 
@@ -2151,6 +2233,15 @@ function upload() {
     $('#explain-contract').onclick = () => {
         const value = text.value.trim();
         if (!value) return toast('Upload a readable file or paste contract text first.');
+        if (freePlan && usage.explanations >= 5) {
+            toast('You have used the 5 contract explanations included with the free plan. View Plans for available options.');
+            return;
+        }
+        if (freePlan) {
+            usage.explanations += 1;
+            savePlanUsage(usage);
+            updatePlanUsage();
+        }
 
         const clauses = value.split(/(?<=[.!?;])\s+|\n+/).filter(x => x.trim().length > 20).slice(0, 10);
         const flags = [];
@@ -2173,7 +2264,7 @@ function upload() {
         $('#contract-explanation').innerHTML = `
             <h3>Contract Structure & Plain-English Analysis</h3>
             <p>This document sets out the legal obligations of the parties. Review the flags and clause meanings below:</p>
-            ${flags.length ? `<h4>⚠️ Pay Close Attention To</h4><ul>${flags.map(x => `<li>${x}</li>`).join('')}</ul>` : ''}
+            ${flags.length ? `<h4>Pay Close Attention To</h4><ul>${flags.map(x => `<li>${x}</li>`).join('')}</ul>` : ''}
             <h4>Clauses Identified (${clauses.length})</h4>
             ${simple || '<p>Add more detailed text for comprehensive clause parsing.</p>'}
         `;
@@ -2184,63 +2275,104 @@ function upload() {
 // 10. HISTORY, DICTIONARY & TRANSLATOR
 // ------------------------------------------------------------------------------
 function historyPage() {
-    const h = history();
     shell('Document History & Vault', `
-        <p class="eyebrow">CONFIDENTIAL VAULT · POPIA COMPLIANT</p>
+        <p class="eyebrow">DOCUMENT HISTORY</p>
         <h1>Your generated documents</h1>
-        <p class="intro">View your drafts and locked legal instruments. Locked documents include verifiable SHA-256 integrity seals.</p>
-        <div class="history-list">
-            ${h.length ? h.map(x => `
-                <article class="history-item">
-                    <span>${x.isLocked ? '🔒' : '▣'}</span>
-                    <div>
-                        <b>${esc(x.name)} ${x.isLocked ? '<span class="history-lock-pill">🔒 Locked & Finalized</span>' : ''}</b>
-                        <small>Created ${esc(x.date)} · ${x.lockHash ? `Seal: ${esc(x.lockHash.slice(0, 24))}...` : 'Draft'}</small>
-                    </div>
-                    <small>Local Storage</small>
-                </article>
-            `).join('') : `
-                <div class="empty-state">
-                    <span class="empty-icon">◷</span>
-                    <h3>No documents yet</h3>
-                    <p>Your generated contracts and locked instruments will appear here.</p>
-                    <a class="primary" href="documents.html">Create your first document</a>
-                </div>
-            `}
-        </div>
+        <p class="intro">Open, download or update a document you created. Saved documents stay in this browser and are separated by your account.</p>
+        <div class="history-list" id="saved-documents"><div class="empty-state">Loading your documents…</div></div>
     `);
+    const container = $('#saved-documents');
+    listUserDocuments().then(items => {
+        container.innerHTML = items.length ? items.map(item => `
+            <article class="history-item">
+                <span>${item.isLocked ? '▣' : '▤'}</span>
+                <div><b>${esc(item.name)} ${item.isLocked ? '<span class="history-lock-pill">Locked</span>' : ''}</b>
+                    <small>Saved ${esc(item.date || new Date(item.updatedAt).toLocaleString('en-ZA'))}</small></div>
+                <button type="button" data-edit-doc="${esc(item.id)}">Edit</button>
+                <button type="button" data-download-doc="${esc(item.id)}">Download Word file</button>
+            </article>`).join('') : `<div class="empty-state"><span class="empty-icon">◷</span><h3>No documents yet</h3><p>Your generated documents will appear here.</p><a class="primary" href="documents.html">Create your first document</a></div>`;
+        container.onclick = async event => {
+            const button = event.target.closest('button'); if (!button) return;
+            try {
+                const doc = await getUserDocument(button.dataset.openDoc || button.dataset.editDoc || button.dataset.downloadDoc);
+                if (!doc) return toast('We could not find that saved document.');
+                if (button.dataset.editDoc) return location.href = `builder.html?type=${encodeURIComponent(doc.type)}&edit=${encodeURIComponent(doc.id)}`;
+                if (button.dataset.downloadDoc || button.dataset.openDoc) {
+                    const url = URL.createObjectURL(doc.file); const a = document.createElement('a');
+                    a.href = url; a.download = `${doc.name.replaceAll(' ', '_')}_LawCompass.docx`; a.click();
+                    setTimeout(() => URL.revokeObjectURL(url), 1000);
+                }
+            } catch (_) { toast('We could not open that document. Please try again.'); }
+        };
+    }).catch(() => { container.innerHTML = '<div class="empty-state">Document history is unavailable right now. Please refresh and try again.</div>'; });
 }
 
 function dictionary() {
     shell('Legal Dictionary', `
         <p class="eyebrow">PLAIN-ENGLISH SOUTH AFRICAN GLOSSARY</p>
         <h1>Legal dictionary</h1>
-        <p class="intro">Understand everyday legal language without the confusing legalese. Click any popular term below or type a search.</p>
+        <p class="intro">Look up legal terms you may hear in court, find in a contract, or discuss with an attorney. Search the examples below or enter a term for a plain-English explanation.</p>
         <div class="search">
-            <input id="term" placeholder="Search a term (e.g. consideration, lease, popia, bcea)">
+            <input id="term" placeholder="Search a legal term (e.g. testator, bail, deposit)" aria-label="Legal term">
             <button class="primary" id="search">Search</button>
         </div>
-        <div id="definition" class="definition empty">Search a legal term or select a suggestion below.</div>
+        <div id="definition" class="definition empty" aria-live="polite">Search a legal term or select a suggestion below.</div>
         <div class="chips">
             ${Object.keys(terms).map(t => `<button data-term="${t}">${t.toUpperCase()}</button>`).join('')}
         </div>
     `);
 
-    const show = w => {
-        const v = terms[w.toLowerCase()];
+    let lookupNumber = 0;
+    const show = async w => {
+        const requestNumber = ++lookupNumber;
+        const term = w.trim();
+        if (!term) {
+            $('#definition').classList.add('empty');
+            $('#definition').textContent = 'Enter a legal term to search.';
+            return;
+        }
+        const v = terms[term.toLowerCase()];
         $('#definition').classList.remove('empty');
-        $('#definition').innerHTML = v ? `
-            <h3>${v[0]}</h3>
-            <p>${v[1]}</p>
-            <p><b>In South African Context:</b> ${v[2]}</p>
-        ` : `
-            <h3>${esc(w)}</h3>
-            <p>No definition found in our local legal glossary. Try one of the suggested terms below.</p>
-        `;
+        const box = $('#definition');
+        box.replaceChildren();
+        const heading = document.createElement('h3');
+        heading.textContent = v ? v[0] : term;
+        box.append(heading);
+        if (v) {
+            const explanation = document.createElement('p'); explanation.textContent = v[1]; box.append(explanation);
+            const example = document.createElement('p');
+            const label = document.createElement('b'); label.textContent = 'In a contract: ';
+            example.append(label, document.createTextNode(v[2])); box.append(example);
+            return;
+        }
+
+        const explanation = document.createElement('p');
+        explanation.textContent = 'Looking up this legal term…';
+        box.append(explanation);
+        const token = localStorage.getItem('lawcompass-token');
+        try {
+            const response = await fetch('/api/v1/assistant/dictionary/lookup', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', ...(token ? { Authorization: `Bearer ${token}` } : {}) },
+                body: JSON.stringify({ term })
+            });
+            const result = await response.json();
+            if (!response.ok) throw new Error('lookup');
+            if (requestNumber !== lookupNumber) return;
+            if (result.definition.trim() === 'NOT_A_LEGAL_TERM') {
+                explanation.textContent = 'This does not appear to be a legal term. Try a word or phrase you may see in court, in a contract, or when speaking with an attorney.';
+                return;
+            }
+            explanation.textContent = result.definition;
+        } catch (_) {
+            if (requestNumber !== lookupNumber) return;
+            explanation.textContent = 'We could not look up that term right now. Please try again or choose one of the suggested terms.';
+        }
     };
 
     $('#search').onclick = () => show($('#term').value);
-    document.addEventListener('click', e => {
+    $('#term').addEventListener('keydown', e => { if (e.key === 'Enter') show($('#term').value); });
+    $('#definition').closest('.view')?.addEventListener('click', e => {
         if (e.target.dataset.term) {
             $('#term').value = e.target.dataset.term;
             show(e.target.dataset.term);
@@ -2249,33 +2381,40 @@ function dictionary() {
 }
 
 function translate() {
-    shell('Plain-Language Helper', `
-        <p class="eyebrow">SIMPLIFY COMPLEX LEGAL JARGON</p>
-        <h1>Plain-language helper</h1>
-        <p class="intro">Paste any complex clause to receive a breakdown identifying obligations, risks, costs, and termination rights.</p>
-        <textarea id="clause" placeholder="Paste a legal clause here..."></textarea>
+    shell('Translate contract terms', `
+        <p class="eyebrow">UNDERSTAND LEGAL TERMS</p>
+        <h1>Translate contract terms</h1>
+        <p class="intro">Paste terms and conditions to get a plain-language translation. The text is sent to the configured AI service for translation, so remove personal details first. This is general information, not legal advice.</p>
+        <textarea id="clause" placeholder="Paste terms and conditions here..."></textarea>
         <div class="translate-actions">
             <select id="lang-guide">
-                <option>Plain English Guide</option>
-                <option>isiZulu (Reader Guide)</option>
-                <option>Sesotho (Reader Guide)</option>
-                <option>Afrikaans (Reader Guide)</option>
+                <option value="English" selected>English</option>
+                <option value="isiZulu">isiZulu</option>
+                <option value="Sesotho">Sesotho</option>
+                <option value="Afrikaans">Afrikaans</option>
             </select>
-            <button class="primary" id="explain">Explain text</button>
+            <button class="primary" id="explain">Translate and explain</button>
         </div>
-        <div class="definition" id="result">Your clause reading guide will appear here.</div>
+        <div class="definition" id="result">Your plain-language translation will appear here.</div>
     `);
 
-    $('#explain').onclick = () => {
+    $('#explain').onclick = async () => {
         const text = $('#clause').value.trim();
-        if (!text) return toast('Paste a legal clause first.');
-        const words = text.split(/\s+/).filter(Boolean).length;
-        $('#result').innerHTML = `
-            <h3>Clause Breakdown (${words} words)</h3>
-            <p><b>Plain Reading:</b> ${plainClause(text)}</p>
-            <p><b>Checklist:</b> 1. Who is obligated? 2. What action is required? 3. What is the deadline? 4. What happens if breached?</p>
-            <p><b>Legal Advice Notice:</b> Always have high-value contracts vetted by a legal professional.</p>
-        `;
+        if (!text) return toast('Paste the terms you want explained.');
+        const button = $('#explain'); button.disabled = true; button.textContent = 'Working…';
+        $('#result').textContent = 'Preparing your plain-language translation…';
+        try {
+            const headers = { 'Content-Type': 'application/json' };
+            const token = localStorage.getItem('lawcompass-token') || localStorage.getItem('lawbuddy-token');
+            if (token) headers.Authorization = `Bearer ${token}`;
+            const response = await fetch('/api/v1/assistant/translate', { method: 'POST', headers, body: JSON.stringify({ text, language: $('#lang-guide').value }) });
+            const result = await response.json();
+            if (!response.ok) throw new Error('translation');
+            $('#result').innerHTML = `<h3>Plain-language version</h3><p>${esc(result.translation).replace(/\n/g, '<br>')}</p><p><b>Reminder:</b> This translation is general information. Ask a qualified legal practitioner about your situation.</p>`;
+        } catch (_) {
+            $('#result').textContent = 'We could not translate the text right now. Please check your connection and try again.';
+            toast('Translation is temporarily unavailable. Please try again.');
+        } finally { button.disabled = false; button.textContent = 'Translate and explain'; }
     };
 }
 
@@ -2338,10 +2477,10 @@ if ($('#login-form')) {
             submitBtn.innerHTML = originalBtnText;
             if (alertBox) {
                 alertBox.className = 'auth-status-box auth-status-error';
-                alertBox.textContent = err.message || 'Login failed. Please verify your credentials.';
+                alertBox.textContent = friendlyError(err, 'We could not sign you in. Check your details and try again.');
                 alertBox.style.display = 'block';
             } else {
-                alert(err.message);
+                alert(friendlyError(err, 'We could not sign you in. Check your details and try again.'));
             }
         }
     };
@@ -2495,7 +2634,7 @@ if ($('#signup-form')) {
         } catch (err) {
             submitBtn.disabled = false;
             submitBtn.innerHTML = originalBtnText;
-            showError(err.message || 'Could not send verification code.');
+            showError(friendlyError(err, 'We could not send a verification code. Check your details and try again.'));
         }
     };
 
@@ -2564,7 +2703,7 @@ if ($('#signup-form')) {
             } catch (err) {
                 submitBtn.disabled = false;
                 submitBtn.innerHTML = origText;
-                showOtpError(err.message || 'Invalid or expired code.');
+                showOtpError(friendlyError(err, 'That code could not be verified. Check it and try again.'));
             }
         };
 
@@ -2598,7 +2737,7 @@ if ($('#signup-form')) {
                     $('#otp-dev-code').textContent = data.devOtp;
                 }
             } catch (e) {
-                alert(e.message);
+                alert(friendlyError(e, 'We could not send a new code. Please try again.'));
             } finally {
                 btn.textContent = 'Resend Code ⟳';
             }

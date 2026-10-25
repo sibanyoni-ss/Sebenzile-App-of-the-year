@@ -13,6 +13,25 @@ a{color:inherit;text-decoration:none}aside nav a{display:block;color:#c1cbdb;pad
 @media (max-width:850px){body:not(.marketing):not(.auth-page)>main,body.sidebar-collapsed>main{margin-left:0;width:100%;padding:0 24px 42px}body:not(.marketing):not(.auth-page)>aside{transform:translateX(-100%);width:274px;padding:26px 18px;z-index:10}body.sidebar-open>aside{transform:translateX(0)}body.sidebar-collapsed>aside{width:274px;padding:26px 18px}body.sidebar-collapsed .logo strong,body.sidebar-collapsed .side-label,body.sidebar-collapsed aside nav a span,body.sidebar-collapsed .side-bottom span{display:inline}body.sidebar-collapsed aside nav a,body.sidebar-collapsed .side-bottom button{text-align:left;padding-inline:14px;font-size:14px}body.sidebar-collapsed aside nav a:hover:after{display:none}#nav-scrim{position:fixed;inset:0;background:#0e1b2e80;z-index:9}body.sidebar-open #nav-scrim{display:block}header{height:auto;min-height:84px;margin-bottom:30px;padding:16px 0}header h2{font-size:clamp(21px,5vw,26px)}#sidebar-toggle{width:38px;height:38px}.hero{padding:32px}.hero h1{font-size:clamp(32px,8vw,42px)}.hero-art{display:none}.stats{grid-template-columns:1fr;margin:16px 0 38px}.action-grid,.plans{grid-template-columns:1fr}.action-grid a:last-child{grid-column:auto}.template-grid{grid-template-columns:1fr}.matter-layout{grid-template-columns:1fr}.document-form{grid-template-columns:1fr}.document-form label.full,.document-form>button{grid-column:auto}.builder-head{align-items:flex-start;gap:12px;flex-direction:column}.search,.translate-actions{flex-direction:column}.search .primary,.translate-actions .primary{width:100%}.translate-actions select{width:100%}.plans article{min-height:auto}.user div{display:none}}
 @media (max-width:480px){body{font-size:15px}body:not(.marketing):not(.auth-page)>main{padding-inline:18px}header{margin-bottom:24px}.header-title{gap:11px}.header-title .eyebrow{font-size:9px}h1{font-size:clamp(30px,9vw,38px)}h2{font-size:24px}.intro{font-size:15px;margin-bottom:26px}.hero{padding:25px 22px}.hero p{font-size:15px}.primary,.secondary{min-height:44px;padding:11px 15px}.template{padding:22px}.template h3{font-size:22px}.definition,.firms{padding:20px}.checklist{padding-inline:18px}.checklist label{font-size:14px}.history-item{align-items:flex-start;flex-wrap:wrap;padding:15px}.history-item>small{width:100%;padding-left:50px}.public-head nav{gap:12px}.public-head nav>a:not(.primary){display:none}.landing{padding:48px 22px}.landing h1{font-size:clamp(39px,12vw,55px)}.lead{font-size:16px}.value-row{justify-content:space-between;gap:8px}.value-row article{max-width:30%}.value-row b{font-size:22px}.value-row span{line-height:1.3}.auth-page .auth-card{margin:16px;width:calc(100% - 32px)}}
 
+/* Keep longer inputs and generated form fields within their cards at every width. */
+.document-form,.document-form fieldset,.field-grid,.form-field{min-width:0;max-width:100%}
+.document-form input:not([type=checkbox]),.document-form select,.document-form textarea,
+#clause,#new-clause-title,#new-clause-body{width:100%;max-width:100%;min-width:0;min-height:48px;padding:13px 14px;box-sizing:border-box}
+.document-form textarea,#clause,#new-clause-body{min-height:130px;resize:vertical;line-height:1.5}
+.document-form input:not([type=checkbox]),.document-form select{height:auto;min-height:48px}
+.builder-actions,.translate-actions{flex-wrap:wrap}
+.translate-actions select{max-width:100%}
+.history-item>div{min-width:0;overflow-wrap:anywhere}
+@media(max-width:560px){
+ .field-grid{grid-template-columns:minmax(0,1fr)}
+ .document-form fieldset{padding:16px}
+ .builder-actions{display:grid!important;grid-template-columns:minmax(0,1fr);width:100%}
+ .builder-actions>*{width:100%;justify-content:center}
+ .translate-actions{align-items:stretch}
+ .translate-actions>*{width:100%!important}
+ .history-item{gap:10px}
+}
+
 /* Sidebar-owned collapse control and comprehensive document forms */
 .sidebar-brand{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:0 5px 30px}.sidebar-brand .logo{padding:0;min-width:0}.sidebar-brand #sidebar-toggle{flex:0 0 30px;width:30px;height:30px;border-color:#40506a;background:#20324e;color:#fff;font-size:25px}.sidebar-brand #sidebar-toggle:hover{background:#314765;color:#fff;border-color:#647a99}#mobile-menu{display:none}.header-title>#sidebar-toggle{display:none}.document-form{max-width:1000px}.document-form fieldset{grid-column:1/-1;margin:0;padding:25px;border:1px solid var(--line);background:#fff}.document-form legend{padding:0 8px;color:#a36d25;font:600 19px Georgia,serif}.field-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:19px}.form-field{display:grid;gap:8px;font-size:13px;font-weight:700}.form-field>span b{color:#b24938}.form-field.full{grid-column:1/-1}.form-field textarea{min-height:100px;resize:vertical}.choice-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;padding:5px 0}.choice-grid label,.single-check{font-size:14px;font-weight:400;color:#46556b}.choice-grid input,.single-check input{margin-right:6px}.form-note{grid-column:1/-1;margin:0;padding:14px 16px;border-left:3px solid var(--gold);background:#fffaf2;color:#5b6270;font-size:13px;line-height:1.55}.document-form>button{margin-top:4px}
 @media (max-width:850px){.sidebar-brand{padding-bottom:30px}.sidebar-brand #sidebar-toggle{display:none}#mobile-menu{display:grid;place-items:center;width:38px;height:38px;padding:0;border:1px solid var(--line);border-radius:7px;background:#fff;color:var(--ink);font-size:19px}.field-grid{grid-template-columns:1fr}.document-form fieldset{padding:20px}.choice-grid{grid-template-columns:1fr}.form-field.full{grid-column:auto}}
@@ -22,6 +41,19 @@ a{color:inherit;text-decoration:none}aside nav a{display:block;color:#c1cbdb;pad
 
 /* Field labels are distinct; typed values and selectable options remain regular-weight. */
 .form-field input,.form-field textarea,.form-field select,.choice-grid label,.single-check{font-weight:400}
+
+/* Consistent, comfortable input height while keeping fields inside responsive cards. */
+input:not([type=checkbox]):not([type=radio]):not([type=submit]),select{min-height:54px;line-height:1.4}
+textarea{min-height:145px;line-height:1.55;resize:vertical}
+.search input{min-width:0}
+.document-form input:not([type=checkbox]),.document-form select,.document-form textarea,
+.auth-card input:not([type=checkbox]),.auth-card textarea,.auth-card select,
+.search input,#clause,#contract-text,#new-clause-body{width:100%;max-width:100%;min-width:0;box-sizing:border-box}
+.document-form textarea{min-height:145px}
+#clause,#contract-text,#new-clause-body{min-height:190px}
+.search{width:100%;min-width:0}
+@media(max-width:850px){.search{max-width:100%}.search input{width:100%}.document-form fieldset,.field-grid,.form-field{min-width:0}}
+@media(max-width:560px){input:not([type=checkbox]):not([type=radio]):not([type=submit]),select{min-height:52px}textarea{min-height:130px}.document-form textarea{min-height:136px}#clause,#contract-text,#new-clause-body{min-height:170px}}
 
 /* Upload reader, compact landing visual, and split sign-in experience. */
 body.sidebar-collapsed main .template-grid{grid-template-columns:repeat(3,minmax(0,1fr))}body.sidebar-collapsed main .action-grid{grid-template-columns:repeat(3,minmax(0,1fr))}.landing-card{align-self:center}.landing-card .paper{width:128px;height:160px;padding:19px 15px;font-size:9px;box-shadow:6px 7px 0 #d7cdbd}.landing-card .paper i{height:4px;margin-top:16px}.landing-card .paper b{width:27px;height:27px;padding-top:5px;margin:16px auto}
@@ -1700,3 +1732,4 @@ body.auth-page {
 }
 
 
+.template .law-link{color:#a36d25;text-decoration:underline;cursor:pointer;font-weight:600}

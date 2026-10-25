@@ -1,7 +1,31 @@
 const express = require('express');
 const router = express.Router();
-const { askCompass, COMPASS_SYSTEM_PROMPT } = require('../services/compassAssistant');
-const { optionalAuth } = require('../middleware/auth');
+const { askCompass, COMPASS_SYSTEM_PROMPT, defineContractTerm } = require('../services/compassAssistant');
+const { optionalAuth, requireAuth } = require('../middleware/auth');
+const { translateLegalText } = require('../services/compassAssistant');
+
+router.post('/dictionary/lookup', requireAuth, async (req, res, next) => {
+    try {
+        const { term } = req.body || {};
+        if (typeof term !== 'string' || !term.trim() || term.trim().length > 100 || !/^[\p{L}\p{N}][\p{L}\p{N}\s'’&()/.-]*$/u.test(term.trim())) {
+            return res.status(400).json({ error: { message: 'Enter one legal term (up to 100 characters).', code: 'INVALID_INPUT' } });
+        }
+        const definition = await defineContractTerm(term.trim());
+        res.json({ definition });
+    } catch (err) { next(err); }
+});
+
+router.post('/translate', requireAuth, async (req, res, next) => {
+    try {
+        const { text, language } = req.body || {};
+        const languages = { English: 'English', isiZulu: 'isiZulu', Sesotho: 'Sesotho', Afrikaans: 'Afrikaans' };
+        if (typeof text !== 'string' || !text.trim() || text.length > 12000 || !languages[language]) {
+            return res.status(400).json({ error: { message: 'Enter text (up to 12,000 characters) and choose a language.', code: 'INVALID_INPUT' } });
+        }
+        const translation = await translateLegalText(text.trim(), languages[language]);
+        res.json({ translation });
+    } catch (err) { next(err); }
+});
 
 /**
  * POST /api/v1/assistant/chat

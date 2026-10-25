@@ -10,13 +10,13 @@ const PLANS = {
         id: 'plan_standard_monthly',
         name: 'Standard Plan',
         amountZar: 99,
-        features: ['Unlimited documents', 'Document locking (SHA-256)', 'Custom terms personalizer', 'PDF & Word export']
+        features: ['Unlimited documents', 'Document locking', 'Custom terms personalizer', 'PDF & Word export']
     },
     premium: {
         id: 'plan_premium_monthly',
         name: 'Premium Enterprise Plan',
         amountZar: 199,
-        features: ['Everything in Standard', 'Contract upload & AI plain-English reader', 'Proximity legal referrals', 'Statutory compliance engine', 'Encrypted cloud vault', 'E-signatures']
+        features: ['Everything in Standard', 'Contract upload & AI plain-language reader', 'Proximity legal referrals', 'Additional legal resources']
     }
 };
 

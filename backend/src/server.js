@@ -52,7 +52,13 @@ app.get('/health', (req, res) => {
 // Mount API v1 routes (PDF Section 6: Version endpoints under /api/v1)
 app.use('/api/v1/auth', authRoutes);
 app.use('/api/v1/documents', documentRoutes);
-app.use('/api/v1', documentRoutes); // Allows /api/v1/templates
+app.get('/api/v1/templates', (req, res) => res.json({ templates: [
+    { key: 'Employment', title: 'Employment Contract', jurisdiction: 'ZA', version: 1, desc: 'Employment terms and conditions.' },
+    { key: 'Lease', title: 'Residential Lease Agreement', jurisdiction: 'ZA', version: 1, desc: 'Residential rental terms.' },
+    { key: 'NDA', title: 'Non-Disclosure Agreement', jurisdiction: 'ZA', version: 1, desc: 'Confidentiality terms.' },
+    { key: 'Service', title: 'Service Agreement', jurisdiction: 'ZA', version: 1, desc: 'Work, delivery and payment terms.' },
+    { key: 'Will', title: 'Last Will and Testament', jurisdiction: 'ZA', version: 1, desc: 'A draft for recording wishes about an estate.' }
+] }));
 app.use('/api/v1/legal-help', legalHelpRoutes);
 app.use('/api/v1/billing', billingRoutes);
 app.use('/api/v1/uploads', uploadRoutes);
