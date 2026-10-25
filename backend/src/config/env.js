@@ -55,6 +55,15 @@ const config = {
         provider: process.env.AI_PROVIDER || 'openai',
         apiKey: process.env.AI_API_KEY,
         model: process.env.AI_MODEL || 'gpt-4o-mini'
+    },
+    legalHelp: {
+        provider: (process.env.LEGAL_HELP_PROVIDER || 'all').toLowerCase(),
+        overpassUrl: process.env.OVERPASS_API_URL || 'https://overpass-api.de/api/interpreter',
+        nominatimUrl: process.env.NOMINATIM_API_URL || 'https://nominatim.openstreetmap.org/search',
+        cacheTtlMs: parseInt(process.env.LEGAL_HELP_CACHE_TTL_MS, 10) || 3600000, // 1 hour default
+        defaultRadiusKm: parseInt(process.env.LEGAL_HELP_DEFAULT_RADIUS_KM, 10) || 25,
+        maxRadiusKm: parseInt(process.env.LEGAL_HELP_MAX_RADIUS_KM, 10) || 150,
+        lpcVerificationUrl: process.env.LPC_VERIFICATION_URL || 'https://lpc.org.za'
     }
 };
 

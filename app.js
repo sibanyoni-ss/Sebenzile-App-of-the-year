@@ -258,53 +258,26 @@ const terms = {
 // ------------------------------------------------------------------------------
 // 2. SOUTH AFRICAN LAW FIRMS DATABASE & PROXIMITY ENGINE
 // ------------------------------------------------------------------------------
-const LOCATIONS = {
-    sandton: { name: 'Sandton, Johannesburg', lat: -26.1076, lng: 28.0567 },
-    johannesburg: { name: 'Johannesburg Central', lat: -26.2041, lng: 28.0473 },
-    rosebank: { name: 'Rosebank, Johannesburg', lat: -26.1458, lng: 28.0435 },
-    pretoria: { name: 'Pretoria / Tshwane', lat: -25.7479, lng: 28.2293 },
-    centurion: { name: 'Centurion, Gauteng', lat: -25.8560, lng: 28.1880 },
-    capetown: { name: 'Cape Town Central', lat: -33.9249, lng: 18.4241 },
-    centurycity: { name: 'Century City, Cape Town', lat: -33.8920, lng: 18.5110 },
-    durban: { name: 'Durban Central', lat: -29.8587, lng: 31.0218 },
-    umhlanga: { name: 'Umhlanga, KZN', lat: -29.7280, lng: 31.0847 },
-    bloemfontein: { name: 'Bloemfontein, Free State', lat: -29.1166, lng: 26.2155 }
+// 2. SOUTH AFRICAN CITY-CENTER PRESETS & HAVERSINE ENGINE
+// ------------------------------------------------------------------------------
+// NOTE: Presets represent approximate city/CBD reference centers and do not pinpoint users.
+const CITY_PRESETS = {
+    sandton: { name: 'Sandton, Johannesburg (Approx. City Center)', shortName: 'Sandton', lat: -26.1076, lng: 28.0567, isApproximate: true },
+    johannesburg: { name: 'Johannesburg Central (Approx. City Center)', shortName: 'Johannesburg', lat: -26.2041, lng: 28.0473, isApproximate: true },
+    rosebank: { name: 'Rosebank, Johannesburg (Approx. City Center)', shortName: 'Rosebank', lat: -26.1458, lng: 28.0435, isApproximate: true },
+    pretoria: { name: 'Pretoria / Tshwane Central (Approx. City Center)', shortName: 'Pretoria', lat: -25.7479, lng: 28.2293, isApproximate: true },
+    centurion: { name: 'Centurion, Gauteng (Approx. City Center)', shortName: 'Centurion', lat: -25.8560, lng: 28.1880, isApproximate: true },
+    capetown: { name: 'Cape Town Central (Approx. City Center)', shortName: 'Cape Town', lat: -33.9249, lng: 18.4241, isApproximate: true },
+    centurycity: { name: 'Century City, Cape Town (Approx. Commercial Area)', shortName: 'Century City', lat: -33.8920, lng: 18.5110, isApproximate: true },
+    durban: { name: 'Durban Central (Approx. City Center)', shortName: 'Durban', lat: -29.8587, lng: 31.0218, isApproximate: true },
+    umhlanga: { name: 'Umhlanga, KZN (Approx. City Center)', shortName: 'Umhlanga', lat: -29.7280, lng: 31.0847, isApproximate: true },
+    bloemfontein: { name: 'Bloemfontein Central (Approx. City Center)', shortName: 'Bloemfontein', lat: -29.1166, lng: 26.2155, isApproximate: true },
+    gqeberha: { name: 'Gqeberha / Port Elizabeth (Approx. City Center)', shortName: 'Gqeberha', lat: -33.9608, lng: 25.6022, isApproximate: true }
 };
-
-const LAW_FIRMS = [
-    // Civil dispute
-    { id: 'f_cd_1', name: 'Goliath & Co Attorneys', matter: 'Civil dispute', city: 'Cape Town', address: 'Norton Rose House, 8 Riebeek St, Cape Town', lat: -33.9230, lng: 18.4210, phone: '+27 (0)21 418 1000', rating: 4.9, specialties: ['High Court civil claims', 'Damages litigation', 'Delict & tort claims'] },
-    { id: 'f_cd_2', name: 'Thomson Wilks Inc.', matter: 'Civil dispute', city: 'Sandton', address: '23 Impala Rd, Chislehurston, Sandton', lat: -26.1060, lng: 28.0550, phone: '+27 (0)11 784 8984', rating: 4.8, specialties: ['Commercial litigation', 'Civil disputes', 'Arbitration & settlement'] },
-    { id: 'f_cd_3', name: 'Cliffe Dekker Hofmeyr (CDH)', matter: 'Civil dispute', city: 'Sandton', address: '1 Protea Place, Sandton', lat: -26.1030, lng: 28.0520, phone: '+27 (0)11 562 1000', rating: 4.9, specialties: ['Complex civil litigation', 'Dispute resolution', 'Insolvency'] },
-    { id: 'f_cd_4', name: 'Magerman Attorneys', matter: 'Civil dispute', city: 'Century City', address: 'Boulevard West, Century City, Cape Town', lat: -33.8910, lng: 18.5120, phone: '+27 (0)21 552 0300', rating: 4.7, specialties: ['Civil debt recovery', 'Magistrates Court disputes', 'Consumer protection'] },
-    { id: 'f_cd_5', name: 'Adams & Adams Attorneys', matter: 'Civil dispute', city: 'Pretoria', address: '4 Hillwood Dr, Lynnwood Ridge, Pretoria', lat: -25.7520, lng: 28.2320, phone: '+27 (0)12 432 6000', rating: 4.9, specialties: ['High Court matters', 'Commercial disputes', 'Insurance litigation'] },
-    { id: 'f_cd_6', name: 'Shepstone & Wylie Attorneys', matter: 'Civil dispute', city: 'Umhlanga', address: '24 Richefond Circle, Ridgeside, Umhlanga', lat: -29.7260, lng: 31.0860, phone: '+27 (0)31 575 7000', rating: 4.8, specialties: ['Civil litigation', 'Maritime law', 'Asset preservation'] },
-
-    // Family law
-    { id: 'f_fl_1', name: 'Wright Rose-Innes Inc.', matter: 'Family law', city: 'Johannesburg', address: 'Rose-Innes House, 96 11th St, Parkmore', lat: -26.1750, lng: 28.0450, phone: '+27 (0)11 646 9991', rating: 4.8, specialties: ['Divorce & mediation', 'Antenuptial contracts', 'Parenting plans'] },
-    { id: 'f_fl_2', name: 'Anthony Rome Attorneys', matter: 'Family law', city: 'Rosebank', address: '32 Bolton Rd, Parkwood, Rosebank', lat: -26.1480, lng: 28.0390, phone: '+27 (0)11 880 3410', rating: 4.9, specialties: ['Matrimonial property', 'Estate planning & wills', 'Child custody'] },
-    { id: 'f_fl_3', name: 'Fairbridges Wertheim Becker', matter: 'Family law', city: 'Cape Town', address: '16th Floor, 1 Thibault Sq, Cape Town', lat: -33.9210, lng: 18.4220, phone: '+27 (0)21 405 7300', rating: 4.7, specialties: ['Trust administration', 'Wills & probate', 'Maintenance agreements'] },
-
-    // Labour dispute
-    { id: 'f_ld_1', name: 'Deale Attorneys', matter: 'Labour dispute', city: 'Umhlanga', address: 'Umhlanga Ridge, Durban, KZN', lat: -29.7250, lng: 31.0830, phone: '+27 (0)31 566 2110', rating: 4.9, specialties: ['CCMA representation', 'Unfair dismissal', 'BCEA compliance'] },
-    { id: 'f_ld_2', name: 'CK Attorneys Inc.', matter: 'Labour dispute', city: 'Sandton', address: 'Commerce Square, Rivonia Rd, Sandton', lat: -26.1090, lng: 28.0580, phone: '+27 (0)11 268 0120', rating: 4.8, specialties: ['Labour Court litigation', 'Retrenchments', 'Executive employment'] },
-    { id: 'f_ld_3', name: 'Bowman Gilfillan (Bowmans)', matter: 'Labour dispute', city: 'Sandton', address: '11 Alice Lane, Sandton', lat: -26.1040, lng: 28.0530, phone: '+27 (0)11 669 9000', rating: 4.9, specialties: ['Employment equity', 'Restraint of trade enforcement', 'Bargaining council'] },
-
-    // Commercial dispute
-    { id: 'f_cmd_1', name: 'Webber Wentzel', matter: 'Commercial dispute', city: 'Sandton', address: '90 Rivonia Rd, Sandton', lat: -26.1020, lng: 28.0540, phone: '+27 (0)11 530 5000', rating: 4.9, specialties: ['Corporate disputes', 'Shareholder agreements', 'Breach of contract'] },
-    { id: 'f_cmd_2', name: 'Kleingels Attorneys', matter: 'Commercial dispute', city: 'Bloemfontein', address: 'President Steyn Ave, Westdene, Bloemfontein', lat: -29.1180, lng: 26.2140, phone: '+27 (0)51 448 3120', rating: 4.7, specialties: ['Commercial agreements', 'Business debt collection', 'Supreme Court of Appeal'] },
-    { id: 'f_cmd_3', name: 'Munro Flowers & Vermaak', matter: 'Commercial dispute', city: 'Rosebank', address: '3 Glenhove Rd, Rosebank', lat: -26.1440, lng: 28.0410, phone: '+27 (0)11 327 5418', rating: 4.8, specialties: ['SME commercial disputes', 'Partnership dissolution', 'Director liability'] },
-
-    // Property dispute
-    { id: 'f_pd_1', name: 'Hugh Raichlin Attorneys', matter: 'Property dispute', city: 'Johannesburg', address: '100 The Hill, Norwood, Johannesburg', lat: -26.1550, lng: 28.0760, phone: '+27 (0)11 483 1527', rating: 4.8, specialties: ['Residential evictions', 'Rental Housing Tribunal', 'Commercial leases'] },
-    { id: 'f_pd_2', name: 'STBB Smith Tabata Buchanan Boyes', matter: 'Property dispute', city: 'Cape Town', address: '5 St Georges Mall, Cape Town', lat: -33.9220, lng: 18.4180, phone: '+27 (0)21 406 9100', rating: 4.9, specialties: ['Conveyancing disputes', 'Sectional title issues', 'Servitudes & boundary'] },
-
-    // Contract dispute
-    { id: 'f_cnd_1', name: 'Cuzen Randeree Dyasi Inc.', matter: 'Contract dispute', city: 'Johannesburg', address: '22 Rustenburg Rd, Victory Park, JHB', lat: -26.1380, lng: 28.0120, phone: '+27 (0)11 782 5225', rating: 4.8, specialties: ['Breach of contract', 'Service level agreements', 'Damages claims'] },
-    { id: 'f_cnd_2', name: 'Werksmans Attorneys', matter: 'Contract dispute', city: 'Sandton', address: '96 Rivonia Rd, Sandton', lat: -26.1045, lng: 28.0555, phone: '+27 (0)11 535 8000', rating: 4.9, specialties: ['Contract drafting & disputes', 'Commercial arbitration', 'International trade contracts'] }
-];
+const LOCATIONS = CITY_PRESETS;
 
 function getDistanceKm(lat1, lon1, lat2, lon2) {
+    if (lat1 === lat2 && lon1 === lon2) return 0;
     const R = 6371;
     const dLat = (lat2 - lat1) * Math.PI / 180;
     const dLon = (lon2 - lon1) * Math.PI / 180;
@@ -314,6 +287,7 @@ function getDistanceKm(lat1, lon1, lat2, lon2) {
     const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
     return parseFloat((R * c).toFixed(1));
 }
+
 
 // ------------------------------------------------------------------------------
 // 3. AUTHENTICATION & ROUTE GUARDS
@@ -1297,31 +1271,73 @@ function builder() {
 }
 
 // ------------------------------------------------------------------------------
-// 7. FIND LEGAL HELP BY PROXIMITY (Closest Law Firms Listed First)
+// 7. FIND LEGAL HELP BY PROXIMITY (Statutory Legal Aid & Verified Directory)
 // ------------------------------------------------------------------------------
 function help() {
     let currentMatter = 'Civil dispute';
     let userLocationKey = 'sandton';
-    let userCoords = LOCATIONS.sandton;
+    let userCoords = { lat: CITY_PRESETS.sandton.lat, lng: CITY_PRESETS.sandton.lng };
+    let currentRadius = 25;
+    let locationMode = 'city_preset'; // 'city_preset' | 'device_gps' | 'suburb_search'
+    let locationLabel = CITY_PRESETS.sandton.name;
+    let cachedFirms = [];
+
+    // Race condition prevention: AbortController and sequence counter
+    let activeSearchController = null;
+    let searchSequence = 0;
 
     shell('Find Legal Help', `
-        <p class="eyebrow">VERIFIED SOUTH AFRICAN ATTORNEYS</p>
+        <p class="eyebrow">VERIFIED LEGAL AID & NEARBY PRACTITIONERS</p>
         <h1>Find legal help by proximity</h1>
-        <p class="intro">Law firms specialized in your selected legal matter are ranked by geographical proximity. The closest firms appear first with direct contact information.</p>
+        <p class="intro">Discover statutory Legal Aid South Africa offices and nearby South African legal practices ranked by geographical proximity. The closest legal services appear first with verified office contact details.</p>
 
         <!-- Proximity Control Panel -->
         <div class="proximity-control-panel">
-            <div class="proximity-location-select">
-                <label for="loc-select">📍 Your Current Area / City:</label>
-                <select id="loc-select" class="proximity-select-input">
-                    ${Object.entries(LOCATIONS).map(([k, loc]) => `
-                        <option value="${k}" ${k === userLocationKey ? 'selected' : ''}>${loc.name}</option>
-                    `).join('')}
-                </select>
+            <div class="proximity-controls-row">
+                <!-- City Preset Selection -->
+                <div class="proximity-field">
+                    <label for="loc-select">City Center (Approximate CBD):</label>
+                    <select id="loc-select" class="proximity-select-input">
+                        ${Object.entries(CITY_PRESETS).map(([k, loc]) => `
+                            <option value="${k}" ${k === userLocationKey ? 'selected' : ''}>${esc(loc.name)}</option>
+                        `).join('')}
+                    </select>
+                </div>
+
+                <!-- Suburb / Town Manual Lookup -->
+                <div class="proximity-field suburb-lookup-field">
+                    <label for="suburb-input">Or Search Suburb / Town:</label>
+                    <div class="suburb-input-wrapper">
+                        <input type="text" id="suburb-input" class="proximity-select-input" placeholder="e.g. Centurion, Rosebank, Bellville..." autocomplete="off">
+                        <div id="suburb-results-dropdown" class="suburb-dropdown" style="display:none;"></div>
+                    </div>
+                </div>
+
+                <!-- Search Radius Selector -->
+                <div class="proximity-field radius-field">
+                    <label for="radius-select">Search Radius:</label>
+                    <select id="radius-select" class="proximity-select-input" style="min-width:120px;">
+                        <option value="15">15 km</option>
+                        <option value="25" selected>25 km (Default)</option>
+                        <option value="50">50 km</option>
+                        <option value="100">100 km</option>
+                    </select>
+                </div>
+
+                <!-- GPS Device Location Action -->
+                <div class="proximity-field gps-action-field">
+                    <label>&nbsp;</label>
+                    <button type="button" id="btn-detect-gps" class="btn-geo-detect" title="Request device location for proximity distance">
+                        Use Device Location
+                    </button>
+                </div>
             </div>
-            <button type="button" id="btn-detect-gps" class="btn-geo-detect">
-                📍 Detect GPS Location
-            </button>
+
+            <!-- Active Origin & Privacy Disclosure Bar -->
+            <div class="search-origin-bar" id="search-origin-bar">
+                <span class="origin-tag">Searching near: <strong>${esc(locationLabel)}</strong> (within ${currentRadius} km)</span>
+                <span class="privacy-tag">Privacy Protected · Approximate query only · Case details never shared</span>
+            </div>
         </div>
 
         <div class="matter-layout">
@@ -1344,72 +1360,204 @@ function help() {
         </div>
     `);
 
-    const renderFirms = async () => {
-        let withDistance = [];
-        try {
-            const apiUrl = `/api/v1/legal-help/firms?matter=${encodeURIComponent(currentMatter)}&lat=${userCoords.lat}&lng=${userCoords.lng}&city=${encodeURIComponent(userLocationKey)}`;
-            const res = await fetch(apiUrl);
-            if (res.ok) {
-                const data = await res.json();
-                if (data && Array.isArray(data.firms)) {
-                    withDistance = data.firms;
-                }
-            }
-        } catch (e) {
-            // Graceful fallback to client-side engine if server is unreachable
+    // Updates origin indicator bar
+    const updateOriginBar = () => {
+        const bar = $('#search-origin-bar');
+        if (bar) {
+            bar.innerHTML = `
+                <span class="origin-tag">Searching near: <strong>${esc(locationLabel)}</strong> (within ${currentRadius} km)</span>
+                <span class="privacy-tag">Privacy Protected · Approximate query only · Case details never shared</span>
+            `;
         }
-
-        if (!withDistance.length) {
-            const matching = LAW_FIRMS.filter(f => f.matter.toLowerCase() === currentMatter.toLowerCase());
-            withDistance = matching.map(f => ({
-                ...f,
-                distanceKm: getDistanceKm(userCoords.lat, userCoords.lng, f.lat, f.lng)
-            }));
-            withDistance.sort((a, b) => a.distanceKm - b.distanceKm);
-        }
-
-        const container = $('#firms-list');
-        if (!withDistance.length) {
-            container.innerHTML = `<div class="empty-state"><span class="empty-icon">⌁</span><h3>No firms found</h3><p>Try choosing a different legal matter or location.</p></div>`;
-            return;
-        }
-
-        container.innerHTML = `
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
-                <p class="eyebrow" style="margin:0;">${currentMatter.toUpperCase()} · SORTED BY PROXIMITY</p>
-                <small style="color:var(--muted);">${withDistance.length} law firms found</small>
-            </div>
-            ${withDistance.map((firm, idx) => `
-                <article class="firm-card ${idx === 0 ? 'closest-match' : ''}">
-                    ${idx === 0 ? '<span class="closest-ribbon">⭐ Closest to You</span>' : ''}
-                    <div class="firm-card-header">
-                        <h3 class="firm-card-title">${esc(firm.name)}</h3>
-                        <span class="distance-pill">📍 ${firm.distanceKm} km away</span>
-                    </div>
-                    <p class="firm-address">${esc(firm.address)} · <strong>${esc(firm.city)}</strong></p>
-                    <div class="firm-rating-row">
-                        <span class="firm-rating-stars">★★★★★ ${firm.rating}</span>
-                        <span>Verified Legal Practice</span>
-                    </div>
-                    <div class="firm-tags-row">
-                        ${firm.specialties.map(s => `<span class="firm-tag">${esc(s)}</span>`).join('')}
-                    </div>
-                    <div class="firm-actions-row">
-                        <a href="tel:${firm.phone.replace(/[^0-9+]/g, '')}" class="firm-call-link">
-                            📞 ${esc(firm.phone)}
-                        </a>
-                        <button type="button" class="firm-consult-btn" data-consult="${esc(firm.name)}">
-                            Book Consultation →
-                        </button>
-                    </div>
-                </article>
-            `).join('')}
-        `;
     };
 
+    // Main fetch & render function with race-condition protection and honest states
+    const renderFirms = async () => {
+        updateOriginBar();
+
+        if (activeSearchController) {
+            activeSearchController.abort();
+        }
+        activeSearchController = new AbortController();
+        const currentSeq = ++searchSequence;
+
+        const container = $('#firms-list');
+        if (!container) return;
+
+        // 1. Loading State
+        container.innerHTML = `
+            <div class="firms-loading-state">
+                <span class="loading-spinner"></span>
+                <p>Searching verified Legal Aid offices and nearby legal practitioners...</p>
+                <small style="color:var(--muted);">Querying proximity within ${currentRadius} km</small>
+            </div>
+        `;
+
+        try {
+            const payload = {
+                matter: currentMatter,
+                radiusKm: currentRadius,
+                locationSource: locationMode,
+                locationLabel: locationLabel
+            };
+
+            // Use explicit lat/lng for device GPS or manual suburb; otherwise city preset
+            if (locationMode === 'device_gps' || locationMode === 'suburb_search') {
+                payload.lat = userCoords.lat;
+                payload.lng = userCoords.lng;
+            } else {
+                payload.city = userLocationKey;
+            }
+
+            // POST to protect coordinates from query strings and access logs
+            const res = await fetch('/api/v1/legal-help/search', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload),
+                signal: activeSearchController.signal
+            });
+
+            const data = await res.json();
+
+            // Discard stale responses from outdated matter or location selections
+            if (currentSeq !== searchSequence) {
+                return;
+            }
+
+            if (!res.ok) {
+                throw new Error(data.error?.message || 'Unable to retrieve legal directory.');
+            }
+
+            // 2. Provider Unavailable State
+            if (data.status === 'unavailable') {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <span class="empty-icon">§</span>
+                        <h3>Legal Help Directory Unavailable</h3>
+                        <p>${esc(data.message || 'The legal help proximity directory is currently unavailable.')}</p>
+                        <p style="margin-top: 14px; font-size:14px;">
+                            You can search practicing legal practitioners directly on the official 
+                            <a href="https://lpc.org.za" target="_blank" rel="noopener noreferrer" class="link">Legal Practice Council Public Roll ↗</a>.
+                        </p>
+                    </div>
+                `;
+                return;
+            }
+
+            cachedFirms = Array.isArray(data.firms) ? data.firms : [];
+
+            // 3. Empty Results State (Honest notice - NEVER replaces with fake firms)
+            if (cachedFirms.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <span class="empty-icon">§</span>
+                        <h3>No legal help found nearby</h3>
+                        <p>No legal help providers were found within <strong>${data.radiusKm || currentRadius} km</strong> of <strong>${esc(locationLabel)}</strong> under <em>${esc(currentMatter)}</em>.</p>
+                        <p style="margin-top:12px; font-size:13px; color:var(--muted);">
+                            Suggestions: Increase your search radius in the dropdown above, or choose a nearby metropolitan city center.
+                        </p>
+                        <div style="margin-top:18px;">
+                            <a href="https://lpc.org.za" target="_blank" rel="noopener noreferrer" class="link" style="font-weight:700;">
+                                Search South African Legal Practice Council Roll ↗
+                            </a>
+                        </div>
+                    </div>
+                `;
+                return;
+            }
+
+            // 4. Success State
+            container.innerHTML = `
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px; flex-wrap:wrap; gap:8px;">
+                    <div>
+                        <p class="eyebrow" style="margin:0;">${esc(currentMatter.toUpperCase())} · SORTED BY PROXIMITY</p>
+                        <small style="color:var(--muted);">Displaying results within ${data.radiusKm} km of ${esc(locationLabel)}</small>
+                    </div>
+                    <span class="result-count-badge">${cachedFirms.length} legal ${cachedFirms.length === 1 ? 'service' : 'services'} found</span>
+                </div>
+
+                ${cachedFirms.map((firm, idx) => `
+                    <article class="firm-card ${idx === 0 ? 'closest-match' : ''}">
+                        ${idx === 0 ? '<span class="closest-ribbon">Closest to Location</span>' : ''}
+                        
+                        <div class="firm-card-header">
+                            <h3 class="firm-card-title">${esc(firm.name)}</h3>
+                            <span class="distance-pill">${firm.distanceKm} km away</span>
+                        </div>
+
+                        <!-- Clear Result Category Distinction -->
+                        <div class="firm-category-badge-wrap">
+                            ${firm.category === 'legal_aid' 
+                                ? `<span class="badge-category badge-legal-aid">Legal Aid South Africa (State-Funded / Indigent Assistance)</span>`
+                                : `<span class="badge-category badge-private">Private Legal Practice (Discovery)</span>`
+                            }
+                        </div>
+
+                        <p class="firm-address">${esc(firm.address)} · <strong>${esc(firm.city)}</strong></p>
+
+                        <!-- Verification & Status Row -->
+                        <div class="firm-verify-row">
+                            ${firm.category === 'legal_aid'
+                                ? `<span class="verification-pill verified">Verified Statutory Body · Legal Aid South Africa</span>`
+                                : `<span class="verification-pill discovery">${esc(firm.verificationStatus)} · <a href="${esc(firm.lpcVerificationReferenceUrl || 'https://lpc.org.za')}" target="_blank" rel="noopener noreferrer">Verify on LPC Roll ↗</a></span>`
+                            }
+                        </div>
+
+                        ${firm.specialties && firm.specialties.length > 0 ? `
+                            <div class="firm-tags-row">
+                                ${firm.specialties.map(s => `<span class="firm-tag">${esc(s)}</span>`).join('')}
+                            </div>
+                        ` : ''}
+
+                        <!-- Actions Row -->
+                        <div class="firm-actions-row">
+                            ${firm.phone ? `
+                                <a href="tel:${firm.phone.replace(/[^0-9+]/g, '')}" class="firm-call-link" title="Call office directly">
+                                    Call ${esc(firm.phone)}
+                                </a>
+                            ` : `
+                                <span class="firm-no-phone">Phone available via LPC directory</span>
+                            `}
+                            <button type="button" class="firm-consult-btn" data-firm-idx="${idx}">
+                                Office Details & Inquiry Preview →
+                            </button>
+                        </div>
+
+                        <!-- Attribution Note -->
+                        <div class="firm-attribution-foot">
+                            <small>Source: ${esc(firm.source)} · ${esc(firm.attribution)}</small>
+                        </div>
+                    </article>
+                `).join('')}
+            `;
+        } catch (err) {
+            // Ignore intentional aborts when user switches filters quickly
+            if (err.name === 'AbortError') return;
+            if (currentSeq !== searchSequence) return;
+
+            // 5. API / Provider Error State (Honest notice - NEVER renders mock firms)
+            container.innerHTML = `
+                <div class="empty-state error-state">
+                    <span class="empty-icon" style="color:#d9534f;">!</span>
+                    <h3>Unable to load legal help directory</h3>
+                    <p>${esc(err.message || 'An error occurred while communicating with the proximity directory provider.')}</p>
+                    <p style="margin-top:10px; font-size:13px; color:var(--muted);">
+                        You can retry the search or select an alternative city center.
+                    </p>
+                    <button type="button" class="secondary" id="btn-retry-search" style="margin-top:14px;">
+                        Retry Search ⟳
+                    </button>
+                </div>
+            `;
+            const retryBtn = $('#btn-retry-search');
+            if (retryBtn) retryBtn.onclick = () => renderFirms();
+        }
+    };
+
+    // Initial render
     renderFirms();
 
-    // Change legal matter
+    // 1. Change legal matter
     $('#matter-nav').onclick = e => {
         const btn = e.target.closest('button[data-matter]');
         if (!btn) return;
@@ -1418,68 +1566,293 @@ function help() {
         renderFirms();
     };
 
-    // Change location from dropdown
+    // 2. Change city center preset
     $('#loc-select').onchange = e => {
         userLocationKey = e.target.value;
-        userCoords = LOCATIONS[userLocationKey] || LOCATIONS.sandton;
+        const preset = CITY_PRESETS[userLocationKey] || CITY_PRESETS.sandton;
+        userCoords = { lat: preset.lat, lng: preset.lng };
+        locationMode = 'city_preset';
+        locationLabel = preset.name;
+        
+        const suburbInput = $('#suburb-input');
+        if (suburbInput) suburbInput.value = '';
+
+        toast(`Location set to ${preset.shortName} center. Recalculating nearest legal help...`);
         renderFirms();
-        toast(`Location updated to ${LOCATIONS[userLocationKey].name}. Recalculating nearest firms...`);
     };
 
-    // Geolocation detection
-    $('#btn-detect-gps').onclick = () => {
-        if (!navigator.geolocation) {
-            return toast('Geolocation is not supported by your browser.');
-        }
-        toast('Detecting GPS location...');
-        navigator.geolocation.getCurrentPosition(
-            pos => {
-                userCoords = { lat: pos.coords.latitude, lng: pos.coords.longitude };
-                renderFirms();
-                toast(`GPS coordinates detected (${userCoords.lat.toFixed(2)}, ${userCoords.lng.toFixed(2)}). Nearest firms listed!`);
-            },
-            err => {
-                console.warn('Geolocation error:', err);
-                toast('Could not access GPS location. Using preset city coordinates.');
+    // 3. Change search radius
+    $('#radius-select').onchange = e => {
+        currentRadius = parseInt(e.target.value, 10) || 25;
+        toast(`Search radius set to ${currentRadius} km`);
+        renderFirms();
+    };
+
+    // 4. Suburb / Town autocomplete search with debounce
+    const suburbInput = $('#suburb-input');
+    const suburbDropdown = $('#suburb-results-dropdown');
+    let debounceTimer = null;
+
+    if (suburbInput && suburbDropdown) {
+        suburbInput.oninput = () => {
+            clearTimeout(debounceTimer);
+            const query = suburbInput.value.trim();
+            if (query.length < 2) {
+                suburbDropdown.style.display = 'none';
+                return;
             }
-        );
+
+            debounceTimer = setTimeout(async () => {
+                try {
+                    const res = await fetch(`/api/v1/legal-help/geocode?q=${encodeURIComponent(query)}`);
+                    if (!res.ok) return;
+                    const data = await res.json();
+                    const results = data.results || [];
+
+                    if (results.length === 0) {
+                        suburbDropdown.innerHTML = `<div class="suburb-item no-match">No matching South African suburb found</div>`;
+                        suburbDropdown.style.display = 'block';
+                        return;
+                    }
+
+                    suburbDropdown.innerHTML = results.map((item, idx) => `
+                        <div class="suburb-item" data-idx="${idx}">
+                            <strong>${esc(item.shortName)}</strong>
+                            <small>${esc(item.displayName)}</small>
+                        </div>
+                    `).join('');
+                    suburbDropdown.style.display = 'block';
+
+                    $$('.suburb-item[data-idx]', suburbDropdown).forEach(el => {
+                        el.onclick = () => {
+                            const idx = parseInt(el.dataset.idx, 10);
+                            const selected = results[idx];
+                            if (selected) {
+                                userCoords = { lat: selected.lat, lng: selected.lng };
+                                locationMode = 'suburb_search';
+                                locationLabel = `${selected.shortName} (Approx. Area)`;
+                                suburbInput.value = selected.shortName;
+                                suburbDropdown.style.display = 'none';
+                                toast(`Location set to ${selected.shortName}. Searching nearby legal help...`);
+                                renderFirms();
+                            }
+                        };
+                    });
+                } catch (e) {
+                    console.warn('Geocoding error:', e);
+                }
+            }, 300);
+        };
+
+        // Close dropdown if user clicks outside
+        document.addEventListener('click', e => {
+            if (!e.target.closest('.suburb-lookup-field')) {
+                suburbDropdown.style.display = 'none';
+            }
+        });
+    }
+
+    // 5. Device location with explanation, permission handling, and error states
+    $('#btn-detect-gps').onclick = () => {
+        showDeviceLocationModal((confirmed) => {
+            if (!confirmed) return;
+
+            // Secure Context restriction check
+            const isSecure = window.isSecureContext || location.hostname === 'localhost' || location.hostname === '127.0.0.1';
+            if (!isSecure) {
+                toast('Browser requires a secure context (HTTPS) to access GPS. Using city center preset instead.');
+                return;
+            }
+
+            // Unsupported Geolocation check
+            if (!navigator.geolocation) {
+                toast('Geolocation is not supported by your browser. Using city center preset instead.');
+                return;
+            }
+
+            toast('Requesting device location...');
+            navigator.geolocation.getCurrentPosition(
+                pos => {
+                    const lat = pos.coords.latitude;
+                    const lng = pos.coords.longitude;
+                    const accuracy = pos.coords.accuracy;
+
+                    userCoords = { lat, lng };
+                    locationMode = 'device_gps';
+                    locationLabel = 'Your Device Location (Approx.)';
+
+                    if (accuracy > 5000) {
+                        toast(`Location detected (broad accuracy ~${Math.round(accuracy / 1000)} km). Recalculating...`);
+                    } else {
+                        // Notice: Do NOT display precise coordinates in notifications or persist them!
+                        toast('Device location detected. Recalculating nearest legal help...');
+                    }
+
+                    renderFirms();
+                },
+                err => {
+                    console.warn('Geolocation error code:', err.code, err.message);
+                    let userMsg = 'Could not access device location.';
+                    if (err.code === 1) { // PERMISSION_DENIED
+                        userMsg = 'Location permission was denied. You can select your city center or search by suburb.';
+                    } else if (err.code === 2) { // POSITION_UNAVAILABLE
+                        userMsg = 'Device location is currently unavailable. Using city center preset.';
+                    } else if (err.code === 3) { // TIMEOUT
+                        userMsg = 'Location request timed out. Using city center preset.';
+                    }
+                    toast(userMsg);
+                },
+                {
+                    enableHighAccuracy: false,
+                    timeout: 10000,
+                    maximumAge: 60000
+                }
+            );
+        });
     };
 
-    // Consultation booking modal
+    // 6. Direct Office Details & Consultation Preview Modal
     document.addEventListener('click', e => {
-        if (e.target.dataset && e.target.dataset.consult) {
-            const firmName = e.target.dataset.consult;
-            showConsultationModal(firmName, currentMatter);
+        const btn = e.target.closest('button[data-firm-idx]');
+        if (btn) {
+            const idx = parseInt(btn.dataset.firmIdx, 10);
+            const firm = cachedFirms[idx];
+            if (firm) {
+                showConsultationModal(firm, currentMatter);
+            }
         }
     });
 }
 
-function showConsultationModal(firmName, matter) {
+/**
+ * Explains why device location is requested before calling navigator.geolocation.
+ */
+function showDeviceLocationModal(onDecision) {
+    const modal = document.createElement('div');
+    modal.className = 'checkout-modal-overlay';
+    modal.innerHTML = `
+        <div class="checkout-modal-box">
+            <button class="modal-close-btn" id="geo-modal-close">✕</button>
+            <p class="eyebrow">LOCATION PRIVACY & PROXIMITY</p>
+            <h3>Use Device Location</h3>
+            <p style="line-height:1.6; color:#4a5568;">
+                LawCompass uses your device's approximate location solely to calculate travel distances to nearby Legal Aid offices and legal practices.
+            </p>
+            <ul style="padding-left:18px; margin:14px 0; color:#5d6a7e; font-size:13px; line-height:1.7;">
+                <li>Your coordinates are used strictly in real-time for distance ranking.</li>
+                <li>Precise coordinates are <strong>never stored</strong> in our databases or profile logs.</li>
+                <li>Your case details are never shared with external directory services.</li>
+            </ul>
+            <div style="display:flex; justify-content:flex-end; gap:10px; margin-top:22px;">
+                <button type="button" class="secondary" id="btn-cancel-geo">Cancel (Use City Preset)</button>
+                <button type="button" class="primary" id="btn-allow-geo">Allow & Detect Location →</button>
+            </div>
+        </div>
+    `;
+    document.body.appendChild(modal);
+
+    const close = (allow) => {
+        if (modal.parentNode) modal.parentNode.removeChild(modal);
+        onDecision(allow);
+    };
+
+    modal.querySelector('#geo-modal-close').onclick = () => close(false);
+    modal.querySelector('#btn-cancel-geo').onclick = () => close(false);
+    modal.querySelector('#btn-allow-geo').onclick = () => close(true);
+}
+
+/**
+ * Consultation & Direct Office Information Modal
+ * Clearly labels online referral as a demonstration preview and provides direct office contacts.
+ * Removes false claims of dispatching requests to unconnected practitioners.
+ */
+function showConsultationModal(firm, matter) {
+    const isLegalAid = firm.category === 'legal_aid';
+
     const modal = document.createElement('div');
     modal.className = 'checkout-modal-overlay';
     modal.innerHTML = `
         <div class="checkout-modal-box">
             <button class="modal-close-btn" id="modal-close">✕</button>
-            <p class="eyebrow">DIRECT ATTORNEY REFERRAL</p>
-            <h3>Consultation with ${esc(firmName)}</h3>
-            <p>Request a confidential preliminary review for your <strong>${esc(matter)}</strong> matter under POPIA safe harbor.</p>
-            <form id="consult-form" style="display:grid; gap:14px; margin-top:20px;">
-                <label><b>Your Full Name</b><input required id="c-name" value="${esc(profile().name)}"></label>
-                <label><b>Phone Number</b><input required id="c-phone" placeholder="+27 (0)82 123 4567"></label>
-                <label><b>Brief Summary of Matter</b><textarea required id="c-notes" placeholder="Briefly describe your situation..."></textarea></label>
-                <button class="primary" style="margin-top:10px;">Submit Consultation Request</button>
+            <p class="eyebrow">DIRECT CONTACT & CONSULTATION INFORMATION</p>
+            <h3>${esc(firm.name)}</h3>
+            <p style="color:var(--muted); margin-bottom:16px;">
+                Matter Category: <strong>${esc(matter)}</strong> · Distance: <strong>${firm.distanceKm} km</strong>
+            </p>
+
+            ${isLegalAid ? `
+                <div class="consultation-notice-box notice-legal-aid">
+                    <strong>State-Funded Statutory Body:</strong>
+                    <p>Legal Aid South Africa provides state-funded legal representation to qualifying indigent individuals subject to the statutory means test. General preliminary legal advice is open to all members of the public.</p>
+                </div>
+            ` : `
+                <div class="consultation-notice-box notice-preview">
+                    <strong>Demonstration Preview:</strong>
+                    <p>Automated direct referral dispatch is currently in demonstration mode. To consult with this practice, please contact them directly using their verified telephone number or office address listed below.</p>
+                </div>
+            `}
+
+            <!-- Verified Office Details -->
+            <div class="office-details-card">
+                <div class="office-detail-row">
+                    <span class="detail-label">Physical Address:</span>
+                    <span class="detail-value">${esc(firm.address)} · ${esc(firm.city)}</span>
+                </div>
+                ${firm.phone ? `
+                    <div class="office-detail-row">
+                        <span class="detail-label">Direct Phone:</span>
+                        <span class="detail-value">
+                            <a href="tel:${firm.phone.replace(/[^0-9+]/g, '')}" class="link" style="font-weight:700;">
+                                ${esc(firm.phone)}
+                            </a>
+                        </span>
+                    </div>
+                ` : ''}
+                <div class="office-detail-row">
+                    <span class="detail-label">Credential Verification:</span>
+                    <span class="detail-value">
+                        <a href="${esc(firm.lpcVerificationReferenceUrl || 'https://lpc.org.za')}" target="_blank" rel="noopener noreferrer" class="link">
+                            Verify Admission on Legal Practice Council Roll ↗
+                        </a>
+                    </span>
+                </div>
+            </div>
+
+            <!-- Demo Inquiry Form -->
+            <form id="consult-demo-form" style="display:grid; gap:12px; margin-top:20px;">
+                <p class="eyebrow" style="margin:0;">PREVIEW INQUIRY FORM (DEMO ONLY)</p>
+                <label><b>Your Name</b><input required id="c-name" value="${esc(profile().name)}"></label>
+                <label><b>Contact Number</b><input required id="c-phone" placeholder="+27 (0)82 123 4567"></label>
+                <label><b>Brief Inquiry Summary</b><textarea required id="c-notes" placeholder="Briefly describe your legal question..."></textarea></label>
+                
+                <p style="font-size:12px; color:var(--muted); line-height:1.5; margin:4px 0;">
+                    <em>Notice: Submitting this form will not transmit confidential case information to third-party firms. Please contact the office directly at ${esc(firm.phone || 'their listed telephone')} for urgent legal advice.</em>
+                </p>
+
+                <div style="display:flex; justify-content:flex-end; gap:10px; margin-top:10px;">
+                    <button type="button" class="secondary" id="btn-close-consult">Close</button>
+                    <button type="submit" class="primary">Record Details & Close</button>
+                </div>
             </form>
         </div>
     `;
     document.body.appendChild(modal);
 
-    modal.querySelector('#modal-close').onclick = () => document.body.removeChild(modal);
-    modal.querySelector('#consult-form').onsubmit = e => {
+    const closeModal = () => {
+        if (modal.parentNode) modal.parentNode.removeChild(modal);
+    };
+
+    modal.querySelector('#modal-close').onclick = closeModal;
+    modal.querySelector('#btn-close-consult').onclick = closeModal;
+
+    modal.querySelector('#consult-demo-form').onsubmit = e => {
         e.preventDefault();
-        document.body.removeChild(modal);
-        toast(`Consultation request dispatched to ${firmName}. A partner will contact you shortly.`);
+        closeModal();
+        // Honest notification: does NOT claim consultation request was sent to a partner!
+        toast(`Office details noted for ${firm.name}. Please contact them directly at ${firm.phone || 'their listed office'}.`);
     };
 }
+
 
 // ------------------------------------------------------------------------------
 // 8. PLANS & PREMIUM BENEFITS (Comprehensive Showcase)

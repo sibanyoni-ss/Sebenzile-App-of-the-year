@@ -449,40 +449,106 @@ body.auth-page {
     background: #ffffff;
     border: 1px solid var(--line);
     border-radius: 8px;
-    padding: 20px 24px;
+    padding: 22px 24px 18px;
     margin-bottom: 26px;
     display: flex;
+    flex-direction: column;
+    gap: 16px;
+    box-shadow: 0 2px 10px rgba(20, 34, 59, 0.04);
+}
+.proximity-controls-row {
+    display: flex;
     flex-wrap: wrap;
-    align-items: center;
-    justify-content: space-between;
+    align-items: flex-end;
     gap: 16px;
 }
-.proximity-location-select {
+.proximity-field {
     display: flex;
-    align-items: center;
-    gap: 12px;
-    flex-wrap: wrap;
+    flex-direction: column;
+    gap: 6px;
+    flex: 1 1 200px;
 }
-.proximity-location-select label {
-    font-size: 13px;
+.proximity-field label {
+    font-size: 12px;
     font-weight: 700;
     color: var(--navy);
+    letter-spacing: 0.3px;
+    text-transform: uppercase;
 }
 .proximity-select-input {
     padding: 10px 14px;
     border: 1px solid var(--line);
     border-radius: 6px;
     background: #ffffff;
-    font-size: 14px;
+    font-size: 13.5px;
     font-weight: 600;
     color: var(--ink);
-    min-width: 220px;
+    width: 100%;
+    transition: border-color 0.15s ease;
+}
+.proximity-select-input:focus {
+    outline: none;
+    border-color: var(--gold);
+}
+.suburb-lookup-field {
+    flex: 1.4 1 260px;
+}
+.suburb-input-wrapper {
+    position: relative;
+    width: 100%;
+}
+.suburb-dropdown {
+    position: absolute;
+    top: calc(100% + 4px);
+    left: 0;
+    right: 0;
+    background: #ffffff;
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    box-shadow: 0 8px 24px rgba(20, 34, 59, 0.12);
+    max-height: 240px;
+    overflow-y: auto;
+    z-index: 100;
+}
+.suburb-item {
+    padding: 10px 14px;
+    border-bottom: 1px solid #f1f3f6;
+    cursor: pointer;
+    transition: background 0.15s ease;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+.suburb-item:last-child {
+    border-bottom: none;
+}
+.suburb-item:hover {
+    background: #fffaf2;
+}
+.suburb-item strong {
+    font-size: 13px;
+    color: var(--navy);
+}
+.suburb-item small {
+    font-size: 11px;
+    color: var(--muted);
+}
+.suburb-item.no-match {
+    color: var(--muted);
+    font-style: italic;
+    cursor: default;
+}
+.radius-field {
+    flex: 0.8 1 120px;
+}
+.gps-action-field {
+    flex: 0 0 auto;
 }
 .btn-geo-detect {
     background: #fffaf2;
     border: 1px solid var(--gold);
     color: #9d6924;
-    padding: 9px 15px;
+    padding: 10px 16px;
     border-radius: 6px;
     font-weight: 700;
     font-size: 13px;
@@ -490,11 +556,69 @@ body.auth-page {
     align-items: center;
     gap: 6px;
     cursor: pointer;
-    transition: 0.15s;
+    transition: all 0.15s ease;
+    height: 42px;
 }
 .btn-geo-detect:hover {
     background: var(--gold);
     color: #14223b;
+    box-shadow: 0 2px 8px rgba(201, 141, 49, 0.25);
+}
+
+.search-origin-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 10px;
+    padding-top: 14px;
+    border-top: 1px solid var(--line);
+    font-size: 12.5px;
+}
+.origin-tag {
+    color: var(--ink);
+}
+.origin-tag strong {
+    color: #1c3152;
+}
+.privacy-tag {
+    color: var(--muted);
+    font-size: 11.5px;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.result-count-badge {
+    background: #edf2f7;
+    color: #2d3748;
+    padding: 5px 12px;
+    border-radius: 14px;
+    font-size: 12px;
+    font-weight: 700;
+}
+
+.firms-loading-state {
+    background: #ffffff;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: 48px 24px;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+}
+.loading-spinner {
+    width: 32px;
+    height: 32px;
+    border: 3px solid #e2e8f0;
+    border-top-color: var(--gold);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+}
+@keyframes spin {
+    to { transform: rotate(360deg); }
 }
 
 .firm-card {
@@ -519,7 +643,7 @@ body.auth-page {
     top: 18px;
     right: 18px;
     background: #c98d31;
-    color: #14223b;
+    color: #ffffff;
     font-weight: 800;
     font-size: 11px;
     letter-spacing: 0.5px;
@@ -531,7 +655,7 @@ body.auth-page {
     display: flex;
     align-items: baseline;
     gap: 10px;
-    margin-bottom: 6px;
+    margin-bottom: 8px;
 }
 .firm-card-title {
     font: 600 20px 'Playfair Display', serif;
@@ -549,28 +673,65 @@ body.auth-page {
     padding: 4px 9px;
     border-radius: 4px;
 }
-.firm-address {
-    color: #5d6a7e;
-    font-size: 14px;
-    margin: 6px 0 12px;
+
+.firm-category-badge-wrap {
+    margin-bottom: 8px;
 }
-.firm-rating-row {
-    display: flex;
+.badge-category {
+    display: inline-flex;
     align-items: center;
-    gap: 12px;
-    font-size: 13px;
-    color: #6a778c;
-    margin-bottom: 14px;
-}
-.firm-rating-stars {
-    color: #e0931f;
+    gap: 5px;
+    padding: 4px 10px;
+    border-radius: 4px;
+    font-size: 11.5px;
     font-weight: 700;
 }
+.badge-legal-aid {
+    background: #e6f6f1;
+    color: #19634d;
+    border: 1px solid #bce6d7;
+}
+.badge-private {
+    background: #eef2f7;
+    color: #2b4263;
+    border: 1px solid #d4deeb;
+}
+
+.firm-address {
+    color: #5d6a7e;
+    font-size: 13.5px;
+    margin: 6px 0 10px;
+    line-height: 1.5;
+}
+
+.firm-verify-row {
+    margin-bottom: 12px;
+    font-size: 12.5px;
+}
+.verification-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    font-weight: 600;
+}
+.verification-pill.verified {
+    color: #226b52;
+}
+.verification-pill.discovery {
+    color: #556277;
+}
+.verification-pill a {
+    color: #a46e25;
+    font-weight: 700;
+    text-decoration: underline;
+}
+
 .firm-tags-row {
     display: flex;
     flex-wrap: wrap;
     gap: 6px;
-    margin-bottom: 18px;
+    margin-bottom: 16px;
 }
 .firm-tag {
     background: #f1f4f8;
@@ -580,11 +741,13 @@ body.auth-page {
     padding: 4px 9px;
     border-radius: 4px;
 }
+
 .firm-actions-row {
     display: flex;
     flex-wrap: wrap;
     gap: 10px;
     align-items: center;
+    margin-top: 12px;
 }
 .firm-consult-btn {
     background: var(--navy);
@@ -596,6 +759,7 @@ body.auth-page {
     border: none;
     cursor: pointer;
     text-decoration: none;
+    transition: background 0.15s ease;
 }
 .firm-consult-btn:hover {
     background: #243a5e;
@@ -609,11 +773,77 @@ body.auth-page {
     font-size: 13px;
     font-weight: 600;
     text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    transition: all 0.15s ease;
 }
 .firm-call-link:hover {
     border-color: var(--gold);
     color: #a46e25;
 }
+.firm-no-phone {
+    font-size: 12px;
+    color: var(--muted);
+    font-style: italic;
+    padding: 8px 0;
+}
+
+.firm-attribution-foot {
+    margin-top: 14px;
+    padding-top: 10px;
+    border-top: 1px dashed #e8edf3;
+    font-size: 11px;
+    color: #8c98a9;
+}
+
+/* Consultation & Office Details Modal Enhancements */
+.consultation-notice-box {
+    padding: 12px 16px;
+    border-radius: 6px;
+    font-size: 13px;
+    line-height: 1.5;
+    margin-bottom: 16px;
+}
+.consultation-notice-box p {
+    margin: 4px 0 0;
+}
+.notice-legal-aid {
+    background: #e9f7f2;
+    border-left: 4px solid #2d7568;
+    color: #17483e;
+}
+.notice-preview {
+    background: #fbf5eb;
+    border-left: 4px solid var(--gold);
+    color: #63471c;
+}
+
+.office-details-card {
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 6px;
+    padding: 14px 18px;
+    margin-bottom: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+.office-detail-row {
+    display: flex;
+    justify-content: space-between;
+    font-size: 13px;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+.detail-label {
+    font-weight: 700;
+    color: var(--navy);
+}
+.detail-value {
+    color: #4a5568;
+}
+
 
 /* ==============================================================================
    DOCUMENT LOCKING & TAMPER-EVIDENT SEALS

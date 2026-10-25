@@ -7,7 +7,9 @@
   "scripts": {
     "start": "node src/server.js",
     "dev": "node --watch src/server.js",
-    "test": "node test/security.test.js"
+    "test": "node test/runAllTests.js",
+    "test:legal": "node test/legalHelp.test.js && node test/frontendChecks.test.js",
+    "test:security": "node test/security.test.js"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.45.0",
