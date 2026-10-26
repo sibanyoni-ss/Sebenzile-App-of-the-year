@@ -26,6 +26,9 @@ async function runFrontendChecks() {
     const appJsPath = path.resolve(__dirname, '../../app.js');
     const appJs = fs.readFileSync(appJsPath, 'utf8');
     const documentsRoute = fs.readFileSync(path.resolve(__dirname, '../src/routes/documents.routes.js'), 'utf8');
+    const loginHtml = fs.readFileSync(path.resolve(__dirname, '../../login.html'), 'utf8');
+    const signupHtml = fs.readFileSync(path.resolve(__dirname, '../../signup.html'), 'utf8');
+    const stylesCss = fs.readFileSync(path.resolve(__dirname, '../../styles.css'), 'utf8');
 
     let passed = 0;
     let failed = 0;
@@ -133,6 +136,67 @@ async function runFrontendChecks() {
         assert.ok(documentsRoute.includes('encryptedBuffer = await encryptDocx(inputBuffer, password)'), 'DOCX endpoint must call verified encryption');
         assert.ok(documentsRoute.includes('encryptedBuffer = await encryptPdf(pdfBytesBuffer, password)'), 'PDF endpoint must call verified encryption');
         assert.ok(documentsRoute.includes('fileBase64: encryptedBuffer.toString(\'base64\')'), 'Endpoint response must contain only the encrypted buffer');
+    });
+
+    // --------------------------------------------------------------------------
+    // 6. PASSWORD VISIBILITY & ACCESSIBILITY CONTROLS
+    // --------------------------------------------------------------------------
+    test('Login page contains accessible show/hide password toggle button', () => {
+        assert.ok(loginHtml.includes('id="toggle-login-password"'), 'login.html must have #toggle-login-password');
+        assert.ok(loginHtml.includes('type="button"'), 'Toggle control must have type="button" to prevent form submission');
+        assert.ok(loginHtml.includes('aria-label="Show password"'), 'Toggle must declare initial aria-label="Show password"');
+        assert.ok(loginHtml.includes('title="Show password"'), 'Toggle must declare initial title="Show password"');
+        assert.ok(loginHtml.includes('aria-controls="login-password"'), 'Toggle must link to password field via aria-controls');
+        assert.ok(loginHtml.includes('lock-password-wrap') || loginHtml.includes('password-input-wrap'), 'Password field must use integrated wrap styling');
+    });
+
+    test('Signup page contains accessible show/hide toggles for both password and confirm-password fields', () => {
+        assert.ok(signupHtml.includes('id="toggle-signup-password"'), 'signup.html must have #toggle-signup-password');
+        assert.ok(signupHtml.includes('id="toggle-signup-confirm-password"'), 'signup.html must have #toggle-signup-confirm-password');
+        assert.ok(signupHtml.includes('aria-controls="signup-password"'), 'Toggle must link to signup password');
+        assert.ok(signupHtml.includes('aria-controls="signup-confirm-password"'), 'Toggle must link to confirm password');
+    });
+
+    test('Shared password visibility helper in app.js supports keyboard use and dynamically updates accessible labels', () => {
+        assert.ok(appJs.includes('function initPasswordToggle'), 'app.js must provide shared initPasswordToggle helper');
+        assert.ok(appJs.includes('toggleBtn.type = \'button\''), 'Helper must enforce button type');
+        assert.ok(appJs.includes('toggleBtn.setAttribute(\'aria-label\''), 'Helper must update aria-label');
+        assert.ok(appJs.includes('toggleBtn.setAttribute(\'title\''), 'Helper must update title');
+        assert.ok(appJs.includes('initPasswordToggle($(\'#toggle-login-password\')'), 'Login form must wire password toggle');
+        assert.ok(appJs.includes('initPasswordToggle($(\'#toggle-signup-password\')'), 'Signup form must wire main password toggle');
+        assert.ok(appJs.includes('initPasswordToggle($(\'#toggle-signup-confirm-password\')'), 'Signup form must wire confirm password toggle');
+    });
+
+    // --------------------------------------------------------------------------
+    // 7. CONTRACT FOLLOW-UP & INTERROGATE RESPONSE LAYOUT
+    // --------------------------------------------------------------------------
+    test('Interrogate question box and button remain near the contract explanation', () => {
+        assert.ok(appJs.includes('id="contract-explanation"'), 'app.js must render #contract-explanation');
+        assert.ok(appJs.includes('id="contract-question"'), 'app.js must render #contract-question');
+        assert.ok(appJs.includes('id="interrogate-contract"'), 'app.js must render #interrogate-contract');
+        assert.ok(appJs.includes('id="contract-followup-answer"'), 'app.js must render #contract-followup-answer');
+    });
+
+    test('Interrogate response displays inside a bounded panel with accessible heading and keyboard scrollability', () => {
+        assert.ok(appJs.includes('contract-followup-panel'), 'app.js must render contract-followup-panel');
+        assert.ok(appJs.includes("panel.setAttribute('tabindex', '0')") || appJs.includes('tabindex="0"'), 'Panel must declare tabindex="0" for keyboard scrolling accessibility');
+        assert.ok(appJs.includes("panel.setAttribute('role', 'region')") || appJs.includes('role="region"'), 'Panel must declare role="region"');
+        assert.ok(appJs.includes("panel.setAttribute('aria-labelledby', 'contract-followup-heading')") || appJs.includes('aria-labelledby="contract-followup-heading"'), 'Panel must be labeled by accessible heading');
+        assert.ok(appJs.includes('id="contract-followup-heading"'), 'Panel must render accessible heading element');
+    });
+
+    test('Response renderer safely parses basic markdown into semantic DOM nodes without raw HTML injection', () => {
+        assert.ok(appJs.includes('function renderSafeFollowupAnswer'), 'app.js must provide safe answer renderer');
+        assert.ok(appJs.includes('document.createTextNode'), 'Renderer must create text nodes safely');
+        assert.ok(appJs.includes('document.createElement(\'strong\')'), 'Renderer must format bold without raw markers');
+        assert.ok(appJs.includes('document.createElement(\'ul\')') || appJs.includes('document.createElement(\'ol\')'), 'Renderer must format lists cleanly');
+    });
+
+    test('Styles define compact, bounded scroll area for follow-up response', () => {
+        assert.ok(stylesCss.includes('.contract-followup-panel'), 'styles.css must style .contract-followup-panel');
+        assert.ok(stylesCss.includes('max-height: 280px') || stylesCss.includes('max-height:280px'), 'styles.css must constrain max-height');
+        assert.ok(stylesCss.includes('overflow-y: auto') || stylesCss.includes('overflow-y:auto'), 'styles.css must enable vertical scroll');
+        assert.ok(stylesCss.includes('.contract-followup-panel:focus-visible'), 'styles.css must provide visible focus indicator');
     });
 
     console.log('\n======================================================');
