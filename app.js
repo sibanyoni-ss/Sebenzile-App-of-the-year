@@ -1041,6 +1041,334 @@ async function generatePopulatedDocx(templateKey, placeholderMap) {
     return docxBlob;
 }
 
+// Helper to convert Blob to Base64
+function blobToBase64(blob) {
+    return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onloadend = () => {
+            const res = reader.result;
+            const base64 = typeof res === 'string' && res.includes(',') ? res.split(',')[1] : '';
+            resolve(base64);
+        };
+        reader.onerror = reject;
+        reader.readAsDataURL(blob);
+    });
+}
+
+// Clean vector SVG icons for Document Locking & Protection UI (Professional Legal Styling, No Emojis)
+const SVG_LOCK_ICON = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px; flex-shrink:0;"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>';
+const SVG_WARN_ICON = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px; flex-shrink:0; margin-top:2px;"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>';
+const SVG_EYE_SHOW = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>';
+const SVG_EYE_HIDE = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line></svg>';
+
+/**
+ * Interactive Modal for Genuine Document Password Protection & Encrypted Download.
+ * Enforces security policy, validates password entries, provides visibility toggles,
+ * and delivers the encrypted artifact (Word or PDF).
+ */
+function openLockAndDownloadModal({ docxBlob, name, type, answers, customClauses, onSuccess }) {
+    const existing = $('.lock-dialog-overlay');
+    if (existing) existing.remove();
+
+    const overlay = document.createElement('div');
+    overlay.className = 'lock-dialog-overlay';
+
+    overlay.innerHTML = `
+        <div class="lock-dialog-card" role="dialog" aria-modal="true" aria-labelledby="lock-modal-heading">
+            <div class="lock-dialog-head">
+                <div>
+                    <h3 id="lock-modal-heading" class="lock-dialog-title">
+                        ${SVG_LOCK_ICON} Lock & Download Protected File
+                    </h3>
+                    <p style="margin:0; font-size:13px; color:var(--muted);">Document: <strong>${esc(name || 'Legal Contract')}</strong></p>
+                </div>
+                <button type="button" class="lock-dialog-close" id="btn-modal-close" aria-label="Close dialog">×</button>
+            </div>
+
+            <div class="lock-info-box">
+                <strong>Password Protection & Cryptographic Locking</strong><br>
+                You are setting a password to encrypt this document before downloading. The downloaded file itself is protected with standard AES encryption. This password will be required whenever the document is opened outside LawCompass in Microsoft Word, LibreOffice, Adobe Acrobat, or any compatible reader.
+            </div>
+
+            <div class="lock-security-warning">
+                ${SVG_WARN_ICON}
+                <div>
+                    <strong>Important Security Notice:</strong>
+                    LawCompass does not store your document password. If you lose or forget this password, the protected document cannot be decrypted or recovered by anyone.
+                </div>
+            </div>
+
+            <form id="lock-download-form">
+                <div class="lock-form-group">
+                    <label class="lock-form-label">Protected Document Format:</label>
+                    <div class="lock-format-selector">
+                        <label class="lock-format-chip active" id="chip-format-docx">
+                            <input type="radio" name="lock-format" value="docx" checked>
+                            <div>
+                                <strong>Word (.docx)</strong>
+                                <small>Office AES Encryption</small>
+                            </div>
+                        </label>
+                        <label class="lock-format-chip" id="chip-format-pdf">
+                            <input type="radio" name="lock-format" value="pdf">
+                            <div>
+                                <strong>PDF (.pdf)</strong>
+                                <small>AES-256 PDF Standard</small>
+                            </div>
+                        </label>
+                    </div>
+                </div>
+
+                <div class="lock-form-group">
+                    <label class="lock-form-label" for="lock-password-input">Create Document Password (min. 8 characters):</label>
+                    <div class="lock-password-wrap">
+                        <input type="password" id="lock-password-input" autocomplete="new-password" placeholder="Enter document password" required>
+                        <button type="button" class="lock-pwd-toggle-btn" id="toggle-pwd-btn-1" aria-label="Show or hide password" title="Show password">${SVG_EYE_SHOW}</button>
+                    </div>
+                </div>
+
+                <div class="lock-form-group">
+                    <label class="lock-form-label" for="lock-confirm-input">Confirm Document Password:</label>
+                    <div class="lock-password-wrap">
+                        <input type="password" id="lock-confirm-input" autocomplete="new-password" placeholder="Re-enter password to confirm" required>
+                        <button type="button" class="lock-pwd-toggle-btn" id="toggle-pwd-btn-2" aria-label="Show or hide password" title="Show password">${SVG_EYE_SHOW}</button>
+                    </div>
+                </div>
+
+                <div id="lock-error-msg" class="lock-error-alert" role="alert"></div>
+
+                <div id="lock-loading-msg" class="lock-loading-indicator">
+                    <div class="lock-spinner"></div>
+                    <span>Encrypting document with AES encryption... Please wait.</span>
+                </div>
+
+                <div class="lock-dialog-actions">
+                    <button type="button" class="secondary" id="btn-cancel-lock">Cancel</button>
+                    <button type="submit" class="primary btn-lock-download" id="btn-submit-lock" style="display:inline-flex; align-items:center; gap:8px;">
+                        ${SVG_LOCK_ICON} Encrypt & Download
+                    </button>
+                </div>
+            </form>
+        </div>
+    `;
+
+    document.body.appendChild(overlay);
+
+    const closeDialog = () => overlay.remove();
+    $('#btn-modal-close', overlay).onclick = closeDialog;
+    $('#btn-cancel-lock', overlay).onclick = closeDialog;
+    overlay.onclick = e => { if (e.target === overlay) closeDialog(); };
+
+    // Format selection
+    const docxChip = $('#chip-format-docx', overlay);
+    const pdfChip = $('#chip-format-pdf', overlay);
+    docxChip.onclick = () => {
+        docxChip.classList.add('active');
+        pdfChip.classList.remove('active');
+        docxChip.querySelector('input').checked = true;
+    };
+    pdfChip.onclick = () => {
+        pdfChip.classList.add('active');
+        docxChip.classList.remove('active');
+        pdfChip.querySelector('input').checked = true;
+    };
+
+    // Show / Hide password toggles
+    const pwdInput = $('#lock-password-input', overlay);
+    const confirmInput = $('#lock-confirm-input', overlay);
+    const toggle1 = $('#toggle-pwd-btn-1', overlay);
+    const toggle2 = $('#toggle-pwd-btn-2', overlay);
+
+    toggle1.onclick = () => {
+        const isPwd = pwdInput.type === 'password';
+        pwdInput.type = isPwd ? 'text' : 'password';
+        toggle1.innerHTML = isPwd ? SVG_EYE_HIDE : SVG_EYE_SHOW;
+        toggle1.setAttribute('title', isPwd ? 'Hide password' : 'Show password');
+    };
+    toggle2.onclick = () => {
+        const isPwd = confirmInput.type === 'password';
+        confirmInput.type = isPwd ? 'text' : 'password';
+        toggle2.innerHTML = isPwd ? SVG_EYE_HIDE : SVG_EYE_SHOW;
+        toggle2.setAttribute('title', isPwd ? 'Hide password' : 'Show password');
+    };
+
+    const errorEl = $('#lock-error-msg', overlay);
+    const loadingEl = $('#lock-loading-msg', overlay);
+    const submitBtn = $('#btn-submit-lock', overlay);
+    const cancelBtn = $('#btn-cancel-lock', overlay);
+
+    const showError = msg => {
+        errorEl.textContent = msg;
+        errorEl.style.display = 'block';
+        loadingEl.style.display = 'none';
+        submitBtn.disabled = false;
+        cancelBtn.disabled = false;
+    };
+
+    $('#lock-download-form', overlay).onsubmit = async e => {
+        e.preventDefault();
+        errorEl.style.display = 'none';
+
+        const password = pwdInput.value;
+        const confirmPassword = confirmInput.value;
+        const format = overlay.querySelector('input[name="lock-format"]:checked')?.value || 'docx';
+
+        if (!password || !password.trim()) {
+            return showError('Please enter a password for the document.');
+        }
+        if (password.length < 8) {
+            return showError('Password must be at least 8 characters long for security compliance.');
+        }
+        if (password !== confirmPassword) {
+            return showError('Passwords do not match. Please re-enter carefully.');
+        }
+
+        // Prevent duplicate submissions
+        submitBtn.disabled = true;
+        cancelBtn.disabled = true;
+        loadingEl.style.display = 'flex';
+
+        try {
+            let fileBase64 = '';
+            if (docxBlob) {
+                fileBase64 = await blobToBase64(docxBlob);
+            }
+
+            const token = localStorage.getItem('lawcompass-token') || localStorage.getItem('lawbuddy-token');
+            const headers = { 'Content-Type': 'application/json' };
+            if (token) headers['Authorization'] = `Bearer ${token}`;
+
+            const response = await fetch('/api/v1/documents/encrypt-document', {
+                method: 'POST',
+                headers,
+                body: JSON.stringify({
+                    fileBase64,
+                    filename: `${(name || 'Document').replaceAll(' ', '_')}.${format}`,
+                    format,
+                    password,
+                    confirmPassword,
+                    title: name,
+                    answers: answers || {},
+                    customClauses: customClauses || [],
+                    templateKey: type
+                })
+            });
+
+            const data = await response.json();
+            if (!response.ok) {
+                throw new Error(data.error?.message || 'Encryption processing failed.');
+            }
+
+            // Convert base64 to Blob
+            const binary = atob(data.fileBase64);
+            const array = new Uint8Array(binary.length);
+            for (let i = 0; i < binary.length; i++) {
+                array[i] = binary.charCodeAt(i);
+            }
+            const protectedBlob = new Blob([array], { type: data.mimeType });
+
+            // Trigger file download of protected artifact
+            const downloadUrl = URL.createObjectURL(protectedBlob);
+            const a = document.createElement('a');
+            a.href = downloadUrl;
+            a.download = data.filename;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            setTimeout(() => URL.revokeObjectURL(downloadUrl), 1000);
+
+            closeDialog();
+            toast(`Encrypted document downloaded! Password will be required to open in Word or PDF reader.`);
+
+            if (typeof onSuccess === 'function') {
+                onSuccess({ format, filename: data.filename, protectedBlob });
+            }
+        } catch (err) {
+            showError(err.message || 'We could not encrypt the document. Please check your inputs and try again.');
+        }
+    };
+}
+
+/**
+ * Interactive Modal for Unlocking Password-Protected Documents in-app.
+ */
+function openUnlockModal({ filename, onUnlock }) {
+    const existing = $('.lock-dialog-overlay');
+    if (existing) existing.remove();
+
+    const overlay = document.createElement('div');
+    overlay.className = 'lock-dialog-overlay';
+
+    overlay.innerHTML = `
+        <div class="lock-dialog-card" role="dialog" aria-modal="true">
+            <div class="lock-dialog-head">
+                <h3 class="lock-dialog-title">${SVG_LOCK_ICON} Unlock Protected Document</h3>
+                <button type="button" class="lock-dialog-close" id="btn-unlock-close">×</button>
+            </div>
+            <p style="color:#5b677a; font-size:13.5px; line-height:1.5;">
+                <strong>${esc(filename)}</strong> is password-protected. Enter the document password to unlock and analyze its clauses.
+            </p>
+            <form id="unlock-doc-form">
+                <div class="lock-form-group">
+                    <label class="lock-form-label" for="unlock-pwd-input">Document Password:</label>
+                    <div class="lock-password-wrap">
+                        <input type="password" id="unlock-pwd-input" placeholder="Enter password to unlock" required>
+                        <button type="button" class="lock-pwd-toggle-btn" id="toggle-unlock-pwd" aria-label="Toggle password visibility" title="Show password">${SVG_EYE_SHOW}</button>
+                    </div>
+                </div>
+                <div id="unlock-error-msg" class="lock-error-alert" role="alert"></div>
+                <div id="unlock-loading-msg" class="lock-loading-indicator">
+                    <div class="lock-spinner"></div> <span>Decrypting document...</span>
+                </div>
+                <div class="lock-dialog-actions">
+                    <button type="button" class="secondary" id="btn-cancel-unlock">Cancel</button>
+                    <button type="submit" class="primary" id="btn-submit-unlock">Unlock & Explain</button>
+                </div>
+            </form>
+        </div>
+    `;
+    document.body.appendChild(overlay);
+
+    const closeDialog = () => overlay.remove();
+    $('#btn-unlock-close', overlay).onclick = closeDialog;
+    $('#btn-cancel-unlock', overlay).onclick = closeDialog;
+
+    const pwdInput = $('#unlock-pwd-input', overlay);
+    const toggle = $('#toggle-unlock-pwd', overlay);
+    toggle.onclick = () => {
+        const isPwd = pwdInput.type === 'password';
+        pwdInput.type = isPwd ? 'text' : 'password';
+        toggle.innerHTML = isPwd ? SVG_EYE_HIDE : SVG_EYE_SHOW;
+        toggle.setAttribute('title', isPwd ? 'Hide password' : 'Show password');
+    };
+
+    const errorEl = $('#unlock-error-msg', overlay);
+    const loadingEl = $('#unlock-loading-msg', overlay);
+    const submitBtn = $('#btn-submit-unlock', overlay);
+
+    $('#unlock-doc-form', overlay).onsubmit = async e => {
+        e.preventDefault();
+        const pwd = pwdInput.value;
+        if (!pwd) {
+            errorEl.textContent = 'Please enter the document password.';
+            errorEl.style.display = 'block';
+            return;
+        }
+        submitBtn.disabled = true;
+        loadingEl.style.display = 'flex';
+        errorEl.style.display = 'none';
+
+        try {
+            await onUnlock(pwd, overlay);
+        } catch (err) {
+            errorEl.textContent = err.message || 'Incorrect password. The document could not be unlocked.';
+            errorEl.style.display = 'block';
+            loadingEl.style.display = 'none';
+            submitBtn.disabled = false;
+        }
+    };
+}
+
 async function builder() {
     const params = new URLSearchParams(location.search);
     const type = params.get('type') || 'Employment';
@@ -1072,12 +1400,19 @@ async function builder() {
                 <div class="lock-status-badge ${isLocked ? 'locked' : 'unlocked'}" id="lock-badge-ui">
                     <span>${isLocked ? 'LOCKED' : 'DRAFT'}</span>
                 </div>
-                <button type="button" id="btn-toggle-lock" class="btn-lock-toggle ${isLocked ? 'btn-unlock-action' : 'btn-lock-action'}">
-                    ${isLocked ? 'Unlock to edit' : 'Lock draft'}
-                </button>
+                <div style="display:flex; gap:10px; align-items:center;">
+                    <button type="button" id="btn-lock-banner-action" class="btn-lock-toggle btn-lock-action" style="display:${isLocked ? 'none' : 'inline-flex'}; align-items:center; gap:6px;">
+                        ${SVG_LOCK_ICON} Lock & Download
+                    </button>
+                    <button type="button" id="btn-toggle-lock" class="btn-lock-toggle ${isLocked ? 'btn-unlock-action' : 'btn-lock-action'}">
+                        ${isLocked ? 'Unlock to edit' : 'Lock draft'}
+                    </button>
+                </div>
             </div>
             <div id="lock-details-box" style="display:none;">
-                <p style="margin: 12px 0 6px; font-weight:700; color:#1e3a5f;">This draft is locked from editing. Unlock it to make changes.</p>
+                <p style="margin: 12px 0 6px; font-weight:700; color:#1e3a5f;">
+                    This draft is locked. Documents exported using "Lock & Download" are encrypted with AES file-level encryption and require your password to open outside LawCompass.
+                </p>
             </div>
         </div>
 
@@ -1134,9 +1469,9 @@ async function builder() {
                 <strong>Legal notice:</strong> This is general information and a document starting point, not legal advice. Check that the draft fits your situation. For complex matters or disputes, speak to a qualified legal practitioner or <a href="https://legal-aid.co.za/" target="_blank" rel="noopener noreferrer">Legal Aid South Africa</a>.
             </p>
 
-            <div class="builder-actions" style="grid-column: 1 / -1; display:flex; gap:14px; justify-content:flex-end;">
-                <button type="button" id="btn-lock-direct" class="secondary" style="display:flex; align-items:center; gap:8px;">
-                    Lock draft
+            <div class="builder-actions" style="grid-column: 1 / -1; display:flex; gap:14px; justify-content:flex-end; align-items:center; flex-wrap:wrap;">
+                <button type="button" id="btn-lock-download" class="secondary btn-lock-download" style="display:flex; align-items:center; gap:8px;">
+                    ${SVG_LOCK_ICON} Lock & Download
                 </button>
                 <button type="submit" class="primary" style="display:flex; align-items:center; gap:8px;">
                     ${editId ? 'Download updated contract' : 'Download contract'} (.docx) <span>↓</span>
@@ -1286,8 +1621,48 @@ async function builder() {
         renderClauses();
     };
 
-    $('#btn-toggle-lock').onclick = () => applyLockState(!isLocked);
-    $('#btn-lock-direct').onclick = () => applyLockState(true);
+    const triggerLockAndDownload = async () => {
+        const answers = extractAnswers($('#build-form'));
+        const placeholderMap = getPlaceholderMap(type, answers, customClauses);
+        try {
+            toast('Preparing document for encryption...');
+            const docxBlob = await generatePopulatedDocx(type, placeholderMap);
+
+            openLockAndDownloadModal({
+                docxBlob,
+                name: t.title,
+                type,
+                answers,
+                customClauses,
+                onSuccess: async (result) => {
+                    await applyLockState(true);
+                    const id = crypto.randomUUID ? crypto.randomUUID() : `${Date.now()}-${Math.random().toString(16).slice(2)}`;
+                    const record = {
+                        id, name: t.title, type, answers, customClauses: [...customClauses], file: docxBlob,
+                        isLocked: true, lockSeal, createdAt: priorDocument?.createdAt || Date.now(), updatedAt: Date.now(),
+                        date: new Date().toLocaleString('en-ZA'),
+                        lockedArtifactFormat: result.format,
+                        lockedArtifactName: result.filename
+                    };
+                    await saveUserDocument(record);
+                    priorDocument = record;
+                }
+            });
+        } catch (err) {
+            toast(err.message || 'We could not prepare the document. Please check your form and try again.');
+        }
+    };
+
+    $('#btn-lock-download').onclick = triggerLockAndDownload;
+    const bannerLockBtn = $('#btn-lock-banner-action');
+    if (bannerLockBtn) bannerLockBtn.onclick = triggerLockAndDownload;
+    $('#btn-toggle-lock').onclick = () => {
+        if (!isLocked) {
+            triggerLockAndDownload();
+        } else {
+            applyLockState(false);
+        }
+    };
     if (isLocked) applyLockState(true);
 
     // Form submit -> generate authentic DOCX
@@ -2210,23 +2585,72 @@ function upload() {
                 status.textContent = `${selected.name} loaded. Ready to explain.`;
             };
             reader.readAsText(selected);
-        } else if (/\.docx$/i.test(selected.name) && window.JSZip) {
-            // Extract text from DOCX
+        } else {
+            // For binary documents (.docx, .pdf, etc.):
             const reader = new FileReader();
             reader.onload = async () => {
+                const arrayBuffer = reader.result;
+                const uint8 = new Uint8Array(arrayBuffer);
+                let binaryStr = '';
+                const chunk = 8192;
+                for (let i = 0; i < uint8.length; i += chunk) {
+                    binaryStr += String.fromCharCode.apply(null, uint8.subarray(i, i + chunk));
+                }
+                const base64 = btoa(binaryStr);
+
                 try {
-                    const zip = await window.JSZip.loadAsync(reader.result);
-                    const xml = await zip.file('word/document.xml').async('text');
-                    const cleanText = xml.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
-                    text.value = cleanText;
-                    status.textContent = `${selected.name} DOCX text extracted successfully!`;
+                    // Check if document is password-protected
+                    const chkRes = await fetch('/api/v1/documents/check-encryption', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ fileBase64: base64, filename: selected.name })
+                    });
+                    const chk = await chkRes.json();
+
+                    if (chk.isEncrypted) {
+                        status.textContent = `${selected.name} is password protected. Enter password to view and explain.`;
+                        openUnlockModal({
+                            filename: selected.name,
+                            onUnlock: async (password, modal) => {
+                                const unlockRes = await fetch('/api/v1/documents/decrypt-document', {
+                                    method: 'POST',
+                                    headers: { 'Content-Type': 'application/json' },
+                                    body: JSON.stringify({
+                                        fileBase64: base64,
+                                        filename: selected.name,
+                                        password,
+                                        format: chk.format
+                                    })
+                                });
+                                const unlockData = await unlockRes.json();
+                                if (!unlockRes.ok) {
+                                    throw new Error(unlockData.error?.message || 'Incorrect password. The document could not be unlocked.');
+                                }
+                                modal.remove();
+                                text.value = unlockData.text;
+                                status.textContent = `${selected.name} unlocked and decrypted successfully!`;
+                                toast('Document unlocked successfully!');
+                                $('#explain-contract').click();
+                            }
+                        });
+                        return;
+                    }
+
+                    // Not encrypted:
+                    if (/\.docx$/i.test(selected.name) && window.JSZip) {
+                        const zip = await window.JSZip.loadAsync(arrayBuffer);
+                        const xml = await zip.file('word/document.xml').async('text');
+                        const cleanText = xml.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
+                        text.value = cleanText;
+                        status.textContent = `${selected.name} DOCX text extracted successfully!`;
+                    } else {
+                        status.textContent = `${selected.name} selected. Copy and paste specific clauses into the box below for explanation.`;
+                    }
                 } catch (e) {
                     status.textContent = `${selected.name} selected. Paste clauses directly if extraction is blocked.`;
                 }
             };
             reader.readAsArrayBuffer(selected);
-        } else {
-            status.textContent = `${selected.name} selected. Copy and paste specific clauses into the box below for explanation.`;
         }
     };
 
@@ -2285,15 +2709,35 @@ function historyPage() {
     listUserDocuments().then(items => {
         container.innerHTML = items.length ? items.map(item => `
             <article class="history-item">
-                <span>${item.isLocked ? '▣' : '▤'}</span>
-                <div><b>${esc(item.name)} ${item.isLocked ? '<span class="history-lock-pill">Locked</span>' : ''}</b>
+                <span>${item.isLocked ? SVG_LOCK_ICON : '▤'}</span>
+                <div><b>${esc(item.name)} ${item.isLocked ? '<span class="history-lock-pill">Locked & Encrypted</span>' : ''}</b>
                     <small>Saved ${esc(item.date || new Date(item.updatedAt).toLocaleString('en-ZA'))}</small></div>
                 <button type="button" data-edit-doc="${esc(item.id)}">Edit</button>
                 <button type="button" data-download-doc="${esc(item.id)}">Download Word file</button>
+                <button type="button" data-lock-download-doc="${esc(item.id)}" style="color:var(--navy); font-weight:700; display:inline-flex; align-items:center; gap:6px;">${SVG_LOCK_ICON} Lock & Download</button>
             </article>`).join('') : `<div class="empty-state"><span class="empty-icon">◷</span><h3>No documents yet</h3><p>Your generated documents will appear here.</p><a class="primary" href="documents.html">Create your first document</a></div>`;
         container.onclick = async event => {
             const button = event.target.closest('button'); if (!button) return;
             try {
+                if (button.dataset.lockDownloadDoc) {
+                    const doc = await getUserDocument(button.dataset.lockDownloadDoc);
+                    if (!doc) return toast('We could not find that saved document.');
+                    openLockAndDownloadModal({
+                        docxBlob: doc.file,
+                        name: doc.name,
+                        type: doc.type,
+                        answers: doc.answers,
+                        customClauses: doc.customClauses,
+                        onSuccess: async (result) => {
+                            doc.isLocked = true;
+                            doc.lockedArtifactFormat = result.format;
+                            doc.lockedArtifactName = result.filename;
+                            await saveUserDocument(doc);
+                            historyPage();
+                        }
+                    });
+                    return;
+                }
                 const doc = await getUserDocument(button.dataset.openDoc || button.dataset.editDoc || button.dataset.downloadDoc);
                 if (!doc) return toast('We could not find that saved document.');
                 if (button.dataset.editDoc) return location.href = `builder.html?type=${encodeURIComponent(doc.type)}&edit=${encodeURIComponent(doc.id)}`;
@@ -2608,24 +3052,9 @@ if ($('#signup-form')) {
             $('#signup-step-2').style.display = 'block';
             $('#otp-target-email').textContent = email;
 
-            // If sandbox/dev OTP is returned, display quick copy pill
-            if (data.devOtp) {
-                const devContainer = $('#otp-dev-container');
-                const devCode = $('#otp-dev-code');
-                if (devContainer && devCode) {
-                    devCode.textContent = data.devOtp;
-                    devContainer.style.display = 'flex';
-                    $('#btn-copy-otp').onclick = () => {
-                        const input = $('#otp-input');
-                        if (input) {
-                            input.value = data.devOtp;
-                            input.focus();
-                        }
-                    };
-                }
-            }
-
             startOtpTimer(data.expiresInSeconds || 600);
+            startResendCooldown(60);
+
             const otpInput = $('#otp-input');
             if (otpInput) {
                 otpInput.value = '';
@@ -2636,6 +3065,30 @@ if ($('#signup-form')) {
             submitBtn.innerHTML = originalBtnText;
             showError(friendlyError(err, 'We could not send a verification code. Check your details and try again.'));
         }
+    };
+
+    let resendCooldownInterval = null;
+    const startResendCooldown = (seconds = 60) => {
+        const btn = $('#btn-resend-otp');
+        if (!btn) return;
+        if (resendCooldownInterval) clearInterval(resendCooldownInterval);
+        let left = seconds;
+        btn.disabled = true;
+        btn.style.opacity = '0.6';
+        btn.style.cursor = 'not-allowed';
+        btn.textContent = `Resend Code (${left}s)`;
+        resendCooldownInterval = setInterval(() => {
+            left--;
+            if (left <= 0) {
+                clearInterval(resendCooldownInterval);
+                btn.disabled = false;
+                btn.style.opacity = '1';
+                btn.style.cursor = 'pointer';
+                btn.textContent = 'Resend Code ⟳';
+            } else {
+                btn.textContent = `Resend Code (${left}s)`;
+            }
+        }, 1000);
     };
 
     // Step 2: OTP Verification Submission
@@ -2696,6 +3149,7 @@ if ($('#signup-form')) {
                 }
 
                 if (countdownInterval) clearInterval(countdownInterval);
+                if (resendCooldownInterval) clearInterval(resendCooldownInterval);
 
                 setTimeout(() => {
                     location.href = redirectTarget;
@@ -2721,7 +3175,13 @@ if ($('#signup-form')) {
         // Resend OTP
         $('#btn-resend-otp').onclick = async () => {
             const btn = $('#btn-resend-otp');
-            btn.textContent = 'Sending...';
+            if (btn.disabled) return;
+
+            const otpAlert = $('#otp-alert');
+            btn.disabled = true;
+            btn.textContent = 'Sending fresh code...';
+            if (otpAlert) otpAlert.style.display = 'none';
+
             try {
                 const res = await fetch('/api/v1/auth/resend-otp', {
                     method: 'POST',
@@ -2731,15 +3191,29 @@ if ($('#signup-form')) {
                 const data = await res.json();
                 if (!res.ok) throw new Error(data.error?.message || 'Failed to resend code');
 
-                toast(`A fresh code has been dispatched to ${registeredEmail}`);
+                toast(`A fresh verification code has been sent to ${registeredEmail}`);
+                if (otpAlert) {
+                    otpAlert.className = 'auth-status-box auth-status-success';
+                    otpAlert.textContent = `A fresh 6-digit code was sent to ${registeredEmail}. Please check your inbox and spam folder.`;
+                    otpAlert.style.display = 'block';
+                }
+
                 startOtpTimer(data.expiresInSeconds || 600);
-                if (data.devOtp && $('#otp-dev-code')) {
-                    $('#otp-dev-code').textContent = data.devOtp;
+                startResendCooldown(60);
+
+                const otpInput = $('#otp-input');
+                if (otpInput) {
+                    otpInput.value = '';
+                    otpInput.focus();
                 }
             } catch (e) {
-                alert(friendlyError(e, 'We could not send a new code. Please try again.'));
-            } finally {
+                btn.disabled = false;
                 btn.textContent = 'Resend Code ⟳';
+                if (otpAlert) {
+                    otpAlert.className = 'auth-status-box auth-status-error';
+                    otpAlert.textContent = friendlyError(e, 'We could not send a new code. Please try again.');
+                    otpAlert.style.display = 'block';
+                }
             }
         };
     }

@@ -7,6 +7,7 @@
  */
 
 const BASE_URL = process.env.TEST_API_URL || 'http://localhost:3000';
+const emailService = require('../src/services/emailService');
 
 async function runTests() {
     console.log('\n======================================================');
@@ -112,8 +113,11 @@ async function runTests() {
         });
         if (!res.ok) throw new Error(`Registration start failed with status ${res.status}`);
         const data = await res.json();
-        if (!data.devOtp || data.devOtp.length !== 6) throw new Error('Did not receive 6-digit OTP code');
-        issuedOtp = data.devOtp;
+        if (data.devOtp) throw new Error('SECURITY VIOLATION: devOtp must not be exposed in HTTP response');
+        
+        const sent = emailService.getLastSentVerificationForTest(testEmailA);
+        if (!sent || !sent.code || sent.code.length !== 6) throw new Error('Verification email was not dispatched via email service');
+        issuedOtp = sent.code;
     });
 
     await test('Rejection of invalid OTP verification code', async () => {
@@ -157,10 +161,14 @@ async function runTests() {
             })
         });
         const regData = await regRes.json();
+        if (regData.devOtp) throw new Error('SECURITY VIOLATION: devOtp leaked for User B');
+        const sentB = emailService.getLastSentVerificationForTest(testEmailB);
+        if (!sentB || !sentB.code) throw new Error('Verification email for User B was not dispatched');
+        
         const vRes = await fetch(`${BASE_URL}/api/v1/auth/verify-otp`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ email: testEmailB, otp: regData.devOtp })
+            body: JSON.stringify({ email: testEmailB, otp: sentB.code })
         });
         const vData = await vRes.json();
         userBToken = vData.session.accessToken;

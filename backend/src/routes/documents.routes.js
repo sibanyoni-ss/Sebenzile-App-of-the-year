@@ -1,8 +1,19 @@
 const express = require('express');
 const router = express.Router();
-const { requireAuth } = require('../middleware/auth');
+const { requireAuth, optionalAuth } = require('../middleware/auth');
 const { supabaseAdmin } = require('../config/supabase');
-const { generateDocumentLockSeal } = require('../services/documentLockService');
+const {
+    generateDocumentLockSeal,
+    validateLockPassword,
+    encryptDocx,
+    decryptDocx,
+    isDocxEncrypted,
+    extractTextFromDocx,
+    generatePdfDocument,
+    encryptPdf,
+    isPdfEncrypted,
+    decryptPdfText
+} = require('../services/documentLockService');
 const { getAccountTier, hasPaidFeatures } = require('../services/planAccess');
 
 /**
@@ -323,4 +334,183 @@ router.get('/', requireAuth, async (req, res, next) => {
     }
 });
 
+/**
+ * POST /api/v1/documents/encrypt-document
+ * Encrypts a document (Word .docx or PDF .pdf) using standard AES encryption and user's password.
+ * The downloaded artifact requires this password to open in external compatible software.
+ */
+router.post('/encrypt-document', optionalAuth, async (req, res, next) => {
+    try {
+        const {
+            fileBase64,
+            filename,
+            format = 'docx',
+            password,
+            confirmPassword,
+            title,
+            answers,
+            customClauses,
+            templateKey
+        } = req.body;
+
+        // 1. Password policy verification
+        const val = validateLockPassword(password, confirmPassword);
+        if (!val.valid) {
+            return res.status(400).json({
+                error: { message: val.error, code: val.code }
+            });
+        }
+
+        const normalizedFormat = String(format || 'docx').toLowerCase().trim();
+
+        // 2. Validate format support
+        if (normalizedFormat !== 'docx' && normalizedFormat !== 'pdf') {
+            return res.status(400).json({
+                error: {
+                    message: 'File-level encryption is supported for Word (.docx) and PDF (.pdf) documents. Plain text and other formats cannot be natively encrypted with application-independent passwords.',
+                    code: 'UNSUPPORTED_FORMAT'
+                }
+            });
+        }
+
+        let encryptedBuffer;
+        let cleanBaseName = (filename || 'Contract')
+            .replace(/\.[^/.]+$/, '')
+            .replace(/_Protected$/i, '')
+            .replace(/_LawCompass$/i, '');
+        let outputFilename;
+
+        if (normalizedFormat === 'docx') {
+            if (!fileBase64) {
+                return res.status(400).json({
+                    error: { message: 'Document file buffer is required for Word document encryption.', code: 'MISSING_FILE' }
+                });
+            }
+            const inputBuffer = Buffer.from(fileBase64, 'base64');
+            encryptedBuffer = await encryptDocx(inputBuffer, password);
+            outputFilename = `${cleanBaseName}_LawCompass_Protected.docx`;
+        } else if (normalizedFormat === 'pdf') {
+            let pdfBytesBuffer;
+            if (fileBase64) {
+                const rawBuf = Buffer.from(fileBase64, 'base64');
+                if (rawBuf.slice(0, 5).toString('utf8') === '%PDF-') {
+                    pdfBytesBuffer = rawBuf;
+                }
+            }
+            if (!pdfBytesBuffer) {
+                // Generate official PDF from answers/customClauses
+                pdfBytesBuffer = await generatePdfDocument({
+                    title: title || cleanBaseName.replace(/_/g, ' '),
+                    templateKey: templateKey || 'Agreement',
+                    answers: answers || {},
+                    customClauses: customClauses || []
+                });
+            }
+            encryptedBuffer = await encryptPdf(pdfBytesBuffer, password);
+            outputFilename = `${cleanBaseName}_LawCompass_Protected.pdf`;
+        }
+
+        // 3. POPIA-compliant audit logging (confidentiality: NEVER store password)
+        if (req.user && req.supabase) {
+            try {
+                await req.supabase.from('audit_events').insert({
+                    user_id: req.user.id,
+                    action: 'DOCUMENT_ENCRYPTED_AND_DOWNLOADED',
+                    resource_type: 'document',
+                    metadata: {
+                        filename: outputFilename,
+                        format: normalizedFormat,
+                        file_size_bytes: encryptedBuffer.length,
+                        encrypted_at: new Date().toISOString()
+                    }
+                });
+            } catch (_) {}
+        }
+
+        res.json({
+            message: 'Document successfully encrypted. Password will be required to open.',
+            filename: outputFilename,
+            format: normalizedFormat,
+            fileBase64: encryptedBuffer.toString('base64'),
+            fileSizeBytes: encryptedBuffer.length,
+            mimeType: normalizedFormat === 'docx'
+                ? 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+                : 'application/pdf'
+        });
+    } catch (err) {
+        next(err);
+    }
+});
+
+/**
+ * POST /api/v1/documents/decrypt-document
+ * Unlocks an encrypted document using the user's password for in-app viewing/explaining.
+ */
+router.post('/decrypt-document', optionalAuth, async (req, res, next) => {
+    try {
+        const { fileBase64, filename, password, format } = req.body;
+        if (!fileBase64 || !password) {
+            return res.status(400).json({
+                error: { message: 'Document file and password are required for unlocking.', code: 'INVALID_INPUT' }
+            });
+        }
+
+        const buffer = Buffer.from(fileBase64, 'base64');
+        const isDocx = (format === 'docx') || (filename && filename.toLowerCase().endsWith('.docx')) || isDocxEncrypted(buffer);
+        const isPdf = (format === 'pdf') || (filename && filename.toLowerCase().endsWith('.pdf')) || isPdfEncrypted(buffer) || buffer.slice(0, 5).toString('utf8') === '%PDF-';
+
+        if (isDocx) {
+            const decryptedBuf = await decryptDocx(buffer, password);
+            const text = await extractTextFromDocx(decryptedBuf);
+            return res.json({
+                message: 'Document successfully unlocked.',
+                format: 'docx',
+                text
+            });
+        } else if (isPdf) {
+            const text = await decryptPdfText(buffer, password);
+            return res.json({
+                message: 'Document successfully unlocked.',
+                format: 'pdf',
+                text
+            });
+        } else {
+            return res.status(400).json({
+                error: { message: 'Unsupported encrypted document format.', code: 'UNSUPPORTED_FORMAT' }
+            });
+        }
+    } catch (err) {
+        if (err.code === 'INVALID_PASSWORD') {
+            return res.status(401).json({
+                error: { message: 'Incorrect password. The document could not be unlocked.', code: 'INVALID_PASSWORD' }
+            });
+        }
+        next(err);
+    }
+});
+
+/**
+ * POST /api/v1/documents/check-encryption
+ * Fast inspection to determine if an uploaded artifact is password-protected.
+ */
+router.post('/check-encryption', optionalAuth, async (req, res) => {
+    try {
+        const { fileBase64, filename } = req.body;
+        if (!fileBase64) {
+            return res.json({ isEncrypted: false, format: 'unknown' });
+        }
+        const buffer = Buffer.from(fileBase64, 'base64');
+        if (isDocxEncrypted(buffer) || (filename && filename.toLowerCase().endsWith('.docx') && isDocxEncrypted(buffer))) {
+            return res.json({ isEncrypted: true, format: 'docx' });
+        }
+        if (isPdfEncrypted(buffer) || (filename && filename.toLowerCase().endsWith('.pdf') && isPdfEncrypted(buffer))) {
+            return res.json({ isEncrypted: true, format: 'pdf' });
+        }
+        return res.json({ isEncrypted: false, format: 'unencrypted' });
+    } catch (_) {
+        res.json({ isEncrypted: false, format: 'unknown' });
+    }
+});
+
 module.exports = router;
+

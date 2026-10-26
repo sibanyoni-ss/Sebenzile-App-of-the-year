@@ -3,12 +3,18 @@ const router = express.Router();
 const crypto = require('crypto');
 const { supabasePublic, supabaseAdmin } = require('../config/supabase');
 const { requireAuth } = require('../middleware/auth');
+const emailService = require('../services/emailService');
 
 // In-memory secure OTP store for pending email verifications with automatic TTL expiry
 const pendingVerifications = new Map();
 
 // Helper to sanitize and trim string inputs
 const cleanStr = val => (typeof val === 'string' ? val.trim() : '');
+
+// Cryptographic hash for OTPs to prevent plaintext storage in memory
+function hashOtpCode(email, code) {
+    return crypto.createHash('sha256').update(`${email.trim().toLowerCase()}:${code.trim()}`).digest('hex');
+}
 
 /**
  * Clean up expired OTPs periodically (every 5 minutes)
@@ -24,7 +30,8 @@ setInterval(() => {
 
 /**
  * POST /api/v1/auth/register-start
- * Step 1: Validate full user details, terms acceptance, and issue a 6-digit email OTP.
+ * Step 1: Validate full user details, terms acceptance, issue a 6-digit email OTP,
+ * and dispatch it via ServerSMTP / TurboSMTP API v2.
  */
 router.post('/register-start', async (req, res, next) => {
     try {
@@ -78,8 +85,9 @@ router.post('/register-start', async (req, res, next) => {
             return res.status(400).json({ error: { message: 'Please select a valid South African province.', code: 'INVALID_PROVINCE' } });
         }
 
-        // 2. Generate secure 6-digit cryptographic OTP (valid for 10 minutes)
-        const otpCode = crypto.randomInt(100000, 999999).toString();
+        // 2. Generate cryptographically secure 6-digit numeric OTP (100000 - 999999)
+        const otpCode = crypto.randomInt(100000, 1000000).toString();
+        const codeHash = hashOtpCode(cleanEmail, otpCode);
         const expiresAt = Date.now() + 10 * 60 * 1000;
 
         const payload = {
@@ -101,10 +109,29 @@ router.post('/register-start', async (req, res, next) => {
             termsVersion: '1.0-draft'
         };
 
+        // 3. Dispatch real verification email using ServerSMTP / TurboSMTP API
+        try {
+            await emailService.sendVerificationEmail({
+                to: cleanEmail,
+                recipientName: cleanFirst,
+                code: otpCode,
+                expiresInMinutes: 10
+            });
+        } catch (emailErr) {
+            return res.status(502).json({
+                error: {
+                    message: `We could not deliver the verification email to ${cleanEmail}. Please verify your email address and try again.`,
+                    code: 'EMAIL_DELIVERY_FAILED'
+                }
+            });
+        }
+
+        // Store secure hash of OTP (plaintext code is never retained in memory or DB)
         pendingVerifications.set(cleanEmail, {
-            otpCode,
+            codeHash,
             expiresAt,
             attempts: 0,
+            lastSentAt: Date.now(),
             payload
         });
 
@@ -118,12 +145,12 @@ router.post('/register-start', async (req, res, next) => {
             });
         } catch (_) {}
 
-        res.json({
-            message: `Verification code sent to ${cleanEmail}. Please enter the 6-digit OTP to complete your registration.`,
+        // Respond with security notice - ABSOLUTELY ZERO verification codes in response!
+        res.status(200).json({
+            status: 'pending_verification',
+            message: `We have sent a verification code to your email address (${cleanEmail}). Please check your inbox and spam folder.`,
             email: cleanEmail,
-            expiresInSeconds: 600,
-            // Include devOtp in sandbox/dev to ensure continuous grading and immediate verification
-            devOtp: otpCode
+            expiresInSeconds: 600
         });
     } catch (err) {
         next(err);
@@ -144,6 +171,10 @@ router.post('/verify-otp', async (req, res, next) => {
             return res.status(400).json({ error: { message: 'Email and OTP verification code are required.', code: 'MISSING_FIELDS' } });
         }
 
+        if (!/^[0-9]{6}$/.test(cleanOtp)) {
+            return res.status(400).json({ error: { message: 'Verification code must be a 6-digit number.', code: 'INVALID_OTP_FORMAT' } });
+        }
+
         const record = pendingVerifications.get(cleanEmail);
         if (!record) {
             return res.status(400).json({ error: { message: 'No active verification found for this email, or code has expired. Please register again.', code: 'OTP_NOT_FOUND' } });
@@ -151,17 +182,27 @@ router.post('/verify-otp', async (req, res, next) => {
 
         if (Date.now() > record.expiresAt) {
             pendingVerifications.delete(cleanEmail);
-            return res.status(400).json({ error: { message: 'Verification code has expired. Please request a new OTP.', code: 'OTP_EXPIRED' } });
+            return res.status(400).json({ error: { message: 'Verification code has expired. Please request a new code.', code: 'OTP_EXPIRED' } });
         }
 
         record.attempts += 1;
         if (record.attempts > 5) {
             pendingVerifications.delete(cleanEmail);
-            return res.status(429).json({ error: { message: 'Too many incorrect attempts. Please start registration again.', code: 'TOO_MANY_ATTEMPTS' } });
+            return res.status(429).json({ error: { message: 'Too many incorrect attempts. For your security, this code has been invalidated. Please start registration again.', code: 'TOO_MANY_ATTEMPTS' } });
         }
 
-        if (record.otpCode !== cleanOtp) {
-            return res.status(400).json({ error: { message: 'Invalid verification code. Please check your OTP and try again.', code: 'INVALID_OTP' } });
+        // Timing-safe cryptographic comparison using SHA-256 hash of provided code
+        const inputHash = hashOtpCode(cleanEmail, cleanOtp);
+        const isMatch = crypto.timingSafeEqual(Buffer.from(record.codeHash, 'hex'), Buffer.from(inputHash, 'hex'));
+
+        if (!isMatch) {
+            const remaining = Math.max(0, 5 - record.attempts);
+            return res.status(400).json({
+                error: {
+                    message: `Invalid verification code. Please check your inbox and try again. (${remaining} attempts remaining)`,
+                    code: 'INVALID_OTP'
+                }
+            });
         }
 
         const payload = record.payload;
@@ -248,7 +289,7 @@ router.post('/verify-otp', async (req, res, next) => {
             return res.status(500).json({ error: { message: 'Account verified, but automated sign-in failed. Please sign in with your credentials.', code: 'SIGNIN_FAILED' } });
         }
 
-        // Clean up pending verification record
+        // Clean up pending verification record atomically
         pendingVerifications.delete(cleanEmail);
 
         // Audit log
@@ -293,7 +334,7 @@ router.post('/verify-otp', async (req, res, next) => {
 
 /**
  * POST /api/v1/auth/resend-otp
- * Resend a fresh 6-digit verification code.
+ * Resend a fresh 6-digit verification code with 60-second cooldown and email dispatch.
  */
 router.post('/resend-otp', async (req, res, next) => {
     try {
@@ -302,19 +343,53 @@ router.post('/resend-otp', async (req, res, next) => {
 
         const record = pendingVerifications.get(cleanEmail);
         if (!record) {
-            return res.status(400).json({ error: { message: 'No registration pending for this email address.', code: 'NO_PENDING_REGISTRATION' } });
+            return res.status(400).json({ error: { message: 'No registration pending for this email address. Please register first.', code: 'NO_PENDING_REGISTRATION' } });
         }
 
-        const newOtp = crypto.randomInt(100000, 999999).toString();
-        record.otpCode = newOtp;
+        // Enforce 60-second cooldown between resend requests
+        const now = Date.now();
+        if (record.lastSentAt && (now - record.lastSentAt) < 60 * 1000) {
+            const waitSec = Math.ceil((60 * 1000 - (now - record.lastSentAt)) / 1000);
+            return res.status(429).json({
+                error: {
+                    message: `Please wait ${waitSec} seconds before requesting a fresh verification code.`,
+                    code: 'RESEND_COOLDOWN'
+                }
+            });
+        }
+
+        // Generate fresh 6-digit numeric OTP and hash it
+        const newOtp = crypto.randomInt(100000, 1000000).toString();
+        const newHash = hashOtpCode(cleanEmail, newOtp);
+
+        // Dispatch email via ServerSMTP / TurboSMTP
+        try {
+            await emailService.sendVerificationEmail({
+                to: cleanEmail,
+                recipientName: record.payload?.firstName || '',
+                code: newOtp,
+                expiresInMinutes: 10
+            });
+        } catch (emailErr) {
+            return res.status(502).json({
+                error: {
+                    message: 'We could not dispatch a fresh verification code at this time. Please try again.',
+                    code: 'EMAIL_DELIVERY_FAILED'
+                }
+            });
+        }
+
+        // Supersede and invalidate previous code
+        record.codeHash = newHash;
         record.expiresAt = Date.now() + 10 * 60 * 1000;
         record.attempts = 0;
+        record.lastSentAt = Date.now();
 
-        res.json({
-            message: `A fresh 6-digit code has been sent to ${cleanEmail}.`,
+        res.status(200).json({
+            status: 'otp_resent',
+            message: `A fresh verification code has been dispatched to ${cleanEmail}. Please check your inbox and spam folder.`,
             email: cleanEmail,
-            expiresInSeconds: 600,
-            devOtp: newOtp
+            expiresInSeconds: 600
         });
     } catch (err) {
         next(err);

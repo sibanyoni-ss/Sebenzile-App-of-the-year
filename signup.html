@@ -182,20 +182,12 @@
                     <p class="eyebrow">SECURITY VERIFICATION</p>
                     <h2 style="font-family:'Playfair Display',serif; font-size:30px; margin:0 0 10px; color:var(--navy);">Verify your email</h2>
                     <p style="font-size:14px; color:var(--muted); line-height:1.5;">
-                        We have dispatched a 6-digit One-Time PIN (OTP) to <br>
-                        <strong id="otp-target-email" style="color:var(--navy);"></strong>
+                        We have sent a 6-digit verification code to <br>
+                        <strong id="otp-target-email" style="color:var(--navy);"></strong>.<br>
+                        Please check your inbox and spam folder.
                     </p>
 
                     <div id="otp-alert" style="display:none;" class="auth-status-box"></div>
-
-                    <!-- Instant OTP Dev Pill for Continuous Assessment -->
-                    <div id="otp-dev-container" style="display:none;" class="otp-dev-pill">
-                        <div>
-                            <strong>Instant Verification PIN:</strong>
-                            <span id="otp-dev-code" style="font-family:'DM Mono',monospace; font-weight:700; font-size:16px; margin-left:8px; letter-spacing:2px;"></span>
-                        </div>
-                        <button type="button" id="btn-copy-otp" class="secondary" style="padding:4px 10px; font-size:11px;">Auto-fill</button>
-                    </div>
 
                     <form id="otp-form" style="margin-top:16px;">
                         <label style="font-size:13px; font-weight:700; color:var(--ink);">

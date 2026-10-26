@@ -3,6 +3,8 @@ const path = require('path');
 
 const testFiles = [
     'security.test.js',
+    'emailVerification.test.js',
+    'documentLocking.test.js',
     'legalHelp.test.js',
     'frontendChecks.test.js'
 ];

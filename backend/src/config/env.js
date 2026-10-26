@@ -64,6 +64,12 @@ const config = {
         defaultRadiusKm: parseInt(process.env.LEGAL_HELP_DEFAULT_RADIUS_KM, 10) || 25,
         maxRadiusKm: parseInt(process.env.LEGAL_HELP_MAX_RADIUS_KM, 10) || 150,
         lpcVerificationUrl: process.env.LPC_VERIFICATION_URL || 'https://lpc.org.za'
+    },
+    turbosmtp: {
+        apiUrl: process.env.TURBOSMTP_API_URL || 'https://api.turbo-smtp.com/api/v2/mail/send',
+        consumerKey: process.env.TURBOSMTP_CONSUMER_KEY || process.env.turboSMPTconsumerKey || '',
+        consumerSecret: process.env.TURBOSMTP_CONSUMER_SECRET || process.env.turboSMPTconsumerSecrete || '',
+        fromEmail: process.env.TURBOSMTP_FROM_EMAIL || process.env.turboSMPTfromEmail || 'noreply@lawcompass.co.za'
     }
 };
 
