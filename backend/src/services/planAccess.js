@@ -13,7 +13,7 @@ function hasPaidFeatures(tier) {
 }
 
 function hasPremiumFeatures(tier) {
-    return tier === 'premium';
+    return tier === 'standard' || tier === 'premium';
 }
 
 module.exports = { getAccountTier, hasPaidFeatures, hasPremiumFeatures };

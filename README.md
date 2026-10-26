@@ -13,9 +13,11 @@ Open `index.html` in a modern browser, or serve this folder with any static web 
 - Guided Employment, NDA, Service, Will, and Lease templates
 - Browser-downloadable `.doc` document drafts
 - Local document history (browser storage)
+- Supabase-backed profile viewing and editing for signed-in users
+- Gemini follow-up questions about the current contract explanation
 - Legal dictionary, law-firm matter finder, compliance checklist, and plain-language helper
 - Responsive desktop and mobile layout
 
 ## Integration note
 
-The original desktop application calls local authentication and document-template APIs. This front-end deliberately makes no API, database, payment, analytics, font, or other remote-system calls. It stores the demo profile and document history only in the browser's `localStorage`. Connect explicitly designed backend endpoints only when production authentication, server-side document generation, payments, email, or shared records are required.
+The static pages use the paired Express API for authentication, Supabase profile reads and updates, and contract explanation follow-up questions. Configure `GEMINI_API_KEY` on the backend (including Render) to enable Gemini follow-ups; the key is never sent to the browser. The plan chooser is a browser-local demo preview, and document history remains in this browser. Payment activation and a real Enterprise contact request are not wired up. The contract's initial plain-English reading remains a browser-side heuristic; only follow-up questions use Gemini.

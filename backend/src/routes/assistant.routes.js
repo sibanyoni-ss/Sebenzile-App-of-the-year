@@ -27,6 +27,22 @@ router.post('/translate', requireAuth, async (req, res, next) => {
     } catch (err) { next(err); }
 });
 
+// Follow-up questions are tied to the explanation shown in the contract reader.
+router.post('/contract-question', requireAuth, async (req, res, next) => {
+    try {
+        const { question, explanation, contractText } = req.body || {};
+        if (typeof question !== 'string' || !question.trim() || question.trim().length > 1000 ||
+            typeof explanation !== 'string' || !explanation.trim() || explanation.length > 12000 ||
+            typeof contractText !== 'string' || !contractText.trim() || contractText.length > 20000) {
+            return res.status(400).json({ error: { message: 'Provide a question and the current contract explanation.', code: 'INVALID_INPUT' } });
+        }
+        if (!process.env.GEMINI_API_KEY || process.env.GEMINI_API_KEY === 'sk-placeholder') return res.status(503).json({ error: { message: 'Follow-up answers are not configured yet.', code: 'AI_UNAVAILABLE' } });
+        const { answerContractQuestion } = require('../services/compassAssistant');
+        const answer = await answerContractQuestion(question.trim(), explanation, contractText);
+        res.json({ answer });
+    } catch (err) { next(err); }
+});
+
 /**
  * POST /api/v1/assistant/chat
  * Chat with Compass - the in-app help assistant for LawCompass

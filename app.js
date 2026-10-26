@@ -310,7 +310,7 @@ function getDistanceKm(lat1, lon1, lat2, lon2) {
 // ------------------------------------------------------------------------------
 const page = document.body.dataset.page;
 // All workspace services require authentication - unauthenticated users must login first
-const PROTECTED_PAGES = ['dashboard', 'documents', 'builder', 'upload', 'history', 'translate', 'help', 'pricing', 'dictionary'];
+const PROTECTED_PAGES = ['dashboard', 'documents', 'builder', 'upload', 'history', 'translate', 'help', 'pricing', 'dictionary', 'profile'];
 
 function getProfile() {
     try {
@@ -329,7 +329,7 @@ function isAuthenticated() {
 const profile = () => getProfile() || { name: 'Member', email: '', tier: 'free' };
 const accountTier = () => String(profile().tier || 'free').trim().toLowerCase();
 const hasPaidFeatures = () => /^(standard|premium)(?:$|[-_  ])/.test(accountTier());
-const hasPremiumFeatures = () => /^premium(?:$|[-_  ])/.test(accountTier());
+const hasPremiumFeatures = () => /^(standard|premium)(?:$|[-_  ])/.test(accountTier());
 const planUsageKey = () => `lawcompass-plan-usage:${documentOwnerKey()}`;
 function getPlanUsage() {
     try {
@@ -398,7 +398,8 @@ const nav = [
     ['dictionary.html', '◌', 'Legal dictionary'],
     ['history.html', '◷', 'Document history'],
     ['translate.html', '文', 'Translate contract terms'],
-    ['pricing.html', '✦', 'Plans & premium']
+    ['pricing.html', '✦', 'Plans & premium'],
+    ['profile.html', '◉', 'Profile']
 ];
 
 function shell(title, bodyContent) {
@@ -411,7 +412,8 @@ function shell(title, bodyContent) {
         dictionary: 'dictionary.html',
         history: 'history.html',
         translate: 'translate.html',
-        pricing: 'pricing.html'
+        pricing: 'pricing.html',
+        profile: 'profile.html'
     };
     const active = activeMap[page] || '';
     const userProfile = profile();
@@ -446,7 +448,7 @@ function shell(title, bodyContent) {
                     </div>
                 </div>
                 <div class="user">
-                    <span>${initials}</span>
+                    <a class="user-avatar-link" href="profile.html" aria-label="Open your profile"><span>${initials}</span></a>
                     <div>
                         <b>${esc(userProfile.name)}</b>
                         <small>${esc(userProfile.email || 'Authenticated user')}</small>
@@ -815,7 +817,7 @@ function dashboard() {
             </a>
             <a href="upload-contract.html">
                 <b>↥</b>
-                <span><strong>Upload & explain contract</strong><small>${hasPremiumFeatures() ? 'Get a plain-language explanation' : accountTier() === 'standard' ? 'Available with Premium' : '2 uploads and 5 explanations on the free plan'}</small></span>
+                <span><strong>Upload & explain contract</strong><small>${hasPremiumFeatures() ? 'Unlimited uploads and explanations' : '2 uploads and 5 explanations on the free plan'}</small></span>
                 <i>→</i>
             </a>
         </div>
@@ -2301,9 +2303,10 @@ function pricing() {
     const renderPricing = () => {
         const isAnnual = billingCycle === 'annual';
         const standardPrice = isAnnual ? 'R374' : 'R39';
-        const premiumPrice = 'R3,000–R15,000';
+        const premiumPrice = 'Custom';
         const standardPeriod = isAnnual ? '/ month (billed R374/yr)' : '/ month (indicative)';
-        const premiumPeriod = '/ month (indicative organisation package)';
+        const premiumPeriod = 'Pricing after assessment';
+        const currentTier = accountTier();
 
         shell('Plans & Premium Benefits', `
             <div class="pricing-header-wrap">
@@ -2320,7 +2323,7 @@ function pricing() {
             <!-- Tiered Cards -->
             <div class="plans-grid-3">
                 <!-- Free Starter -->
-                <article class="plan-box">
+                <article class="plan-box ${currentTier === 'free' ? 'current-plan' : ''}">
                     <p class="plan-tier-name">FREE STARTER</p>
                     <div class="plan-price-row">
                         <span class="plan-price-val">R0</span>
@@ -2335,24 +2338,25 @@ function pricing() {
                         <li><b>✓</b> Upload up to 2 contracts (PDF, DOCX or TXT)</li>
                         <li><b>✓</b> Get up to 5 contract explanations</li>
                     </ul>
-                    <button type="button" class="plan-cta-btn secondary" disabled>Current Plan</button>
+                    <button type="button" class="plan-cta-btn secondary pay-trigger" data-plan="free" ${currentTier === 'free' ? 'disabled' : ''}>${currentTier === 'free' ? 'Current Plan' : 'Choose Free Starter'}</button>
                 </article>
 
                 <!-- Standard Pro -->
-                <article class="plan-box">
+                <article class="plan-box ${currentTier === 'standard' ? 'current-plan' : ''}">
                     <p class="plan-tier-name">STANDARD PRO</p>
                     <div class="plan-price-row">
                         <span class="plan-price-val">${standardPrice}</span>
                         <span class="plan-price-period">${standardPeriod}</span>
                     </div>
-                    <p class="plan-desc">Indicative plan for individuals and small businesses. Payment and listed paid features are not available yet.</p>
+                    <p class="plan-desc">For individuals and small businesses who need more from their workspace.</p>
                     <ul class="plan-benefits-list">
                         <li><b>✓</b> <strong>Unlimited document creation</strong></li>
+                        <li class="pro-feature"><b>✓</b> <strong>Unlimited contract uploads and explanations</strong></li>
                         <li class="pro-feature"><b>✓</b> <strong>Personalize Contract (Custom clauses studio)</strong></li>
                         <li><b>✓</b> Clean Microsoft Word (.docx) & PDF exports</li>
                         <li><b>✓</b> Planned: customer support</li>
                     </ul>
-                    <button type="button" class="plan-cta-btn primary pay-trigger" data-plan="standard">Choose Standard</button>
+                    <button type="button" class="plan-cta-btn primary pay-trigger" data-plan="standard" ${currentTier === 'standard' ? 'disabled' : ''}>${currentTier === 'standard' ? 'Current Plan' : 'Choose Standard Pro'}</button>
                 </article>
 
                 <!-- Premium Enterprise -->
@@ -2363,7 +2367,7 @@ function pricing() {
                         <span class="plan-price-val">${premiumPrice}</span>
                         <span class="plan-price-period">${premiumPeriod}</span>
                     </div>
-                    <p class="plan-desc">Indicative package for legal insurance providers. Payment and listed features are not available yet.</p>
+                    <p class="plan-desc">Pricing depends on an assessment of your current systems and requirements.</p>
                     <ul class="plan-benefits-list">
                         <li class="pro-feature"><b>✓</b> <strong>Everything in Standard Pro</strong></li>
                         <li class="pro-feature"><b>✓</b> <strong>Contract upload and clause explanation</strong></li>
@@ -2398,13 +2402,13 @@ function pricing() {
                         <tr>
                             <td><strong>Upload Contracts (PDF, DOCX, TXT)</strong></td>
                             <td>Up to 2 documents</td>
-                            <td>Not included</td>
+                            <td>Unlimited</td>
                             <td><span class="check-yes">✓ Included</span></td>
                         </tr>
                         <tr>
                             <td><strong>Contract explanations</strong></td>
                             <td>Up to 5 explanations</td>
-                            <td>Not included</td>
+                            <td>Unlimited</td>
                             <td><span class="check-yes">✓ Included</span></td>
                         </tr>
                         <tr>
@@ -2443,8 +2447,13 @@ function pricing() {
 
         $$('.pay-trigger').forEach(btn => {
             btn.onclick = () => {
-                const planName = btn.dataset.plan === 'premium' ? 'Premium Enterprise' : 'Standard Pro';
-                showCheckoutModal(planName);
+                const chosen = btn.dataset.plan;
+                if (chosen === 'premium') return showEnterpriseModal();
+                const p = profile();
+                p.tier = chosen;
+                localStorage.setItem('lawcompass-profile', JSON.stringify(p));
+                renderPricing();
+                showPlanChangeModal(chosen);
             };
         });
     };
@@ -2452,30 +2461,16 @@ function pricing() {
     renderPricing();
 }
 
-function showCheckoutModal(planName) {
+function showEnterpriseModal() {
     const modal = document.createElement('div');
     modal.className = 'checkout-modal-overlay';
     modal.innerHTML = `
         <div class="checkout-modal-box">
             <button class="modal-close-btn" id="modal-close">✕</button>
-            <p class="eyebrow">PLAN PREVIEW</p>
-            <h3>Upgrade to ${esc(planName)}</h3>
-            <p>Payment setup is not available yet. This plan preview does not take a payment.</p>
-            <div style="background:#f8fafc; border:1px solid #e2e8f0; padding:16px; border-radius:6px; margin:18px 0;">
-                <div style="display:flex; justify-content:space-between; margin-bottom:8px;">
-                    <span>Plan:</span>
-                    <b>${esc(planName)}</b>
-                </div>
-                <div style="display:flex; justify-content:space-between; margin-bottom:8px;">
-                    <span>Payment:</span>
-                    <span>Not available yet</span>
-                </div>
-                <div style="display:flex; justify-content:space-between; color:#216657; font-weight:700;">
-                    <span>Status:</span>
-                    <span>Plan preview only</span>
-                </div>
-            </div>
-            <button class="primary wide" id="confirm-upgrade-btn">Close plan preview</button>
+            <p class="eyebrow">PREMIUM ENTERPRISE</p>
+            <h3>Thank you for your interest</h3>
+            <p>LawCompass will contact you soon to discuss your requirements and assess your current systems.</p>
+            <button class="primary wide" id="confirm-upgrade-btn">Close</button>
         </div>
     `;
     document.body.appendChild(modal);
@@ -2483,8 +2478,25 @@ function showCheckoutModal(planName) {
     modal.querySelector('#modal-close').onclick = () => document.body.removeChild(modal);
     modal.querySelector('#confirm-upgrade-btn').onclick = () => {
         document.body.removeChild(modal);
-        toast('Paid plans are not available yet.');
     };
+}
+
+function showPlanChangeModal(tier) {
+    const message = tier === 'free'
+        ? 'You have been downgraded to the Free Starter plan.'
+        : 'Congratulations! You have switched to the Standard Pro plan.';
+    const modal = document.createElement('div');
+    modal.className = 'checkout-modal-overlay';
+    modal.innerHTML = `<div class="checkout-modal-box" role="dialog" aria-modal="true" aria-labelledby="plan-change-title">
+        <button class="modal-close-btn" id="plan-change-close" aria-label="Close">✕</button>
+        <p class="eyebrow">PLAN UPDATED</p><h3 id="plan-change-title">${esc(message)}</h3>
+        <p>Your demo workspace benefits now match your selected plan.</p>
+        <button class="primary wide" id="plan-change-done">Continue</button>
+    </div>`;
+    const close = () => modal.remove();
+    document.body.appendChild(modal);
+    modal.querySelector('#plan-change-close').onclick = close;
+    modal.querySelector('#plan-change-done').onclick = close;
 }
 
 // ------------------------------------------------------------------------------
@@ -2514,7 +2526,7 @@ function upload() {
     shell('Upload & Explain Contract', `
         <p class="eyebrow">CONTRACT READER & CLAUSE EXPLAINER</p>
         <h1>Upload a contract</h1>
-        <p class="intro">Upload a document or paste a clause to get a basic plain-language reading guide. ${freePlan ? 'The free plan includes 2 uploads and 5 explanations.' : 'Your Premium plan includes unlimited uploads and explanations.'} The tool highlights common wording patterns; it cannot decide whether a term is unfair or legally suitable.</p>
+        <p class="intro">Upload a document or paste a clause to get a basic plain-language reading guide. ${freePlan ? 'The free plan includes 2 uploads and 5 explanations.' : 'Standard Pro includes unlimited uploads and explanations.'} The tool highlights common wording patterns; it cannot decide whether a term is unfair or legally suitable.</p>
 
         <div class="upload-layout">
             <section class="upload-card">
@@ -2542,6 +2554,12 @@ function upload() {
                     <h3>Ready when you are</h3>
                     <p>Upload a file or paste text to see common clauses and a basic explanation of their wording.</p>
                 </div>
+                <div class="contract-followup" aria-live="polite">
+                    <label for="contract-question">Have a question about this explanation?</label>
+                    <textarea id="contract-question" rows="3" placeholder="Ask a follow-up question..." disabled></textarea>
+                    <button class="primary" id="interrogate-contract" type="button" disabled>Interrogate</button>
+                    <div id="contract-followup-answer"></div>
+                </div>
             </section>
         </div>
 
@@ -2553,6 +2571,8 @@ function upload() {
     const file = $('#contract-file');
     const text = $('#contract-text');
     const status = $('#upload-status');
+    let latestExplanation = '';
+    let latestContractText = '';
     const updatePlanUsage = () => {
         const counter = $('#plan-usage');
         if (counter) counter.textContent = `Free plan: ${Math.max(0, 2 - usage.uploads)} of 2 uploads and ${Math.max(0, 5 - usage.explanations)} of 5 explanations remaining.`;
@@ -2697,6 +2717,103 @@ function upload() {
             <h4>Clauses Identified (${clauses.length})</h4>
             ${simple || '<p>Add more detailed text for comprehensive clause parsing.</p>'}
         `;
+        latestContractText = value;
+        latestExplanation = $('#contract-explanation').innerText.trim();
+        $('#contract-question').disabled = false;
+        $('#interrogate-contract').disabled = false;
+        $('#contract-followup-answer').replaceChildren();
+    };
+
+    $('#interrogate-contract').onclick = async () => {
+        const question = $('#contract-question').value.trim();
+        const explanation = latestExplanation;
+        if (!question) return toast('Enter a question about the explanation first.');
+        const button = $('#interrogate-contract');
+        button.disabled = true;
+        button.textContent = 'Thinking…';
+        try {
+            const token = localStorage.getItem('lawcompass-token') || localStorage.getItem('lawbuddy-token');
+            const response = await fetch('/api/v1/assistant/contract-question', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', ...(token ? { Authorization: `Bearer ${token}` } : {}) },
+                body: JSON.stringify({ question, explanation, contractText: latestContractText })
+            });
+            const result = await response.json();
+            if (!response.ok) throw new Error(result.error?.message || 'The follow-up could not be answered.');
+            const answer = document.createElement('p');
+            answer.className = 'contract-followup-response';
+            answer.textContent = result.answer;
+            $('#contract-followup-answer').replaceChildren(answer);
+            $('#contract-question').value = '';
+        } catch (error) {
+            toast(error.message || 'The follow-up could not be answered.');
+        } finally {
+            button.disabled = false;
+            button.textContent = 'Interrogate';
+        }
+    };
+}
+
+async function profilePage() {
+    shell('Your Profile', `
+        <p class="eyebrow">ACCOUNT DETAILS</p>
+        <h1>Your profile</h1>
+        <p class="intro">Review and update the personal details saved to your LawCompass account.</p>
+        <form id="profile-form" class="profile-form">
+            <p id="profile-status" class="form-note" role="status">Loading your profile…</p>
+            <label>First name<input name="first_name" required maxlength="100"></label>
+            <label>Surname<input name="surname" required maxlength="100"></label>
+            <label class="full">Full name<input name="full_name" required maxlength="160"></label>
+            <label>Email<input name="email" type="email" readonly></label>
+            <label>Phone<input name="phone" type="tel" maxlength="40"></label>
+            <label>Date of birth<input name="date_of_birth" type="date"></label>
+            <label class="full">Residential address<input name="residential_address" required maxlength="500"></label>
+            <label>City<input name="city" required maxlength="100"></label>
+            <label>Province<select name="province" required><option value="">Select province</option>${['Eastern Cape','Free State','Gauteng','KwaZulu-Natal','Limpopo','Mpumalanga','Northern Cape','North West','Western Cape'].map(x => `<option>${x}</option>`).join('')}</select></label>
+            <label>Postal code<input name="postal_code" required maxlength="20"></label>
+            <label>Preferred language<select name="preferred_language">${['English','isiZulu','isiXhosa','Afrikaans','Sesotho','Setswana','Sepedi','Xitsonga','siSwati','Tshivenda','isiNdebele'].map(x => `<option>${x}</option>`).join('')}</select></label>
+            <label>Account type<select name="persona"><option value="individual">Individual</option><option value="student">Student</option><option value="business_owner">Business owner</option></select></label>
+            <button class="primary" type="submit">Save profile</button>
+        </form>
+    `);
+    const form = $('#profile-form');
+    const status = $('#profile-status');
+    const token = localStorage.getItem('lawcompass-token') || localStorage.getItem('lawbuddy-token');
+    if (!token) {
+        status.textContent = 'Please sign in again to manage your saved profile.';
+        form.hidden = true;
+        return;
+    }
+    const headers = { Authorization: `Bearer ${token}` };
+    try {
+        const response = await fetch('/api/v1/auth/me', { headers });
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.error?.message || 'Could not load your profile.');
+        const u = data.user;
+        for (const [key, value] of Object.entries({ first_name: u.firstName, surname: u.surname, full_name: u.fullName, email: u.email, phone: u.phone, date_of_birth: u.dateOfBirth, residential_address: u.residentialAddress, city: u.city, province: u.province, postal_code: u.postalCode, preferred_language: u.preferredLanguage, persona: u.persona })) {
+            if (form.elements[key]) form.elements[key].value = value || '';
+        }
+        status.textContent = 'Your saved profile details are shown below.';
+    } catch (error) {
+        status.textContent = error.message;
+        form.hidden = true;
+        return;
+    }
+    form.onsubmit = async event => {
+        event.preventDefault();
+        const payload = Object.fromEntries(new FormData(form).entries());
+        delete payload.email;
+        try {
+            const response = await fetch('/api/v1/auth/me', { method: 'PATCH', headers: { ...headers, 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+            const data = await response.json();
+            if (!response.ok) throw new Error(data.error?.message || 'Could not save your profile.');
+            const p = profile();
+            p.name = payload.full_name;
+            p.email = form.elements.email.value;
+            localStorage.setItem('lawcompass-profile', JSON.stringify(p));
+            status.textContent = 'Profile saved to your account.';
+            toast('Your profile has been updated.');
+        } catch (error) { status.textContent = error.message; }
     };
 }
 
@@ -3247,7 +3364,8 @@ const routes = {
     history: historyPage,
     upload,
     translate,
-    pricing
+    pricing,
+    profile: profilePage
 };
 
 if (page && routes[page]) {

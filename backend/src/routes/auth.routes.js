@@ -563,6 +563,50 @@ router.get('/me', requireAuth, async (req, res, next) => {
     }
 });
 
+/** Update editable fields on the signed-in user's own profile. */
+router.patch('/me', requireAuth, async (req, res, next) => {
+    try {
+        const allowed = ['first_name', 'surname', 'full_name', 'date_of_birth', 'residential_address', 'city', 'province', 'postal_code', 'phone', 'preferred_language', 'persona'];
+        const input = req.body || {};
+        const updates = {};
+        for (const key of allowed) {
+            if (Object.prototype.hasOwnProperty.call(input, key)) {
+                if (typeof input[key] !== 'string' || input[key].length > (key === 'residential_address' ? 500 : 160)) {
+                    return res.status(400).json({ error: { message: `Invalid ${key.replaceAll('_', ' ')}.`, code: 'INVALID_PROFILE_FIELD' } });
+                }
+                updates[key] = input[key].trim() || null;
+            }
+        }
+        if (!Object.keys(updates).length) return res.status(400).json({ error: { message: 'No editable profile fields were provided.', code: 'EMPTY_PROFILE_UPDATE' } });
+        if (updates.full_name === null || (updates.first_name === null && input.first_name !== undefined) || (updates.surname === null && input.surname !== undefined)) {
+            return res.status(400).json({ error: { message: 'Name fields cannot be empty.', code: 'INVALID_PROFILE_FIELD' } });
+        }
+        for (const key of ['residential_address', 'city', 'province', 'postal_code']) {
+            if (Object.prototype.hasOwnProperty.call(updates, key) && updates[key] === null) {
+                return res.status(400).json({ error: { message: `${key.replaceAll('_', ' ')} cannot be empty.`, code: 'INVALID_PROFILE_FIELD' } });
+            }
+        }
+        if (updates.province && !['Eastern Cape', 'Free State', 'Gauteng', 'KwaZulu-Natal', 'Limpopo', 'Mpumalanga', 'Northern Cape', 'North West', 'Western Cape'].includes(updates.province)) {
+            return res.status(400).json({ error: { message: 'Select a valid South African province.', code: 'INVALID_PROFILE_FIELD' } });
+        }
+        if (updates.preferred_language && !['English', 'isiZulu', 'isiXhosa', 'Afrikaans', 'Sesotho', 'Setswana', 'Sepedi', 'siSwati', 'Tshivenda', 'isiNdebele', 'Xitsonga'].includes(updates.preferred_language)) {
+            return res.status(400).json({ error: { message: 'Select a supported language.', code: 'INVALID_PROFILE_FIELD' } });
+        }
+        if (updates.persona && !['individual', 'student', 'business_owner'].includes(updates.persona)) {
+            return res.status(400).json({ error: { message: 'Select a valid account type.', code: 'INVALID_PROFILE_FIELD' } });
+        }
+        updates.updated_at = new Date().toISOString();
+        const { data, error } = await req.supabase.from('profiles').update(updates).eq('id', req.user.id).select('*').single();
+        if (error) return next(error);
+        const metaUpdates = {};
+        if (updates.full_name) metaUpdates.full_name = updates.full_name;
+        if (updates.first_name) metaUpdates.first_name = updates.first_name;
+        if (updates.surname) metaUpdates.surname = updates.surname;
+        if (Object.keys(metaUpdates).length) await req.supabase.auth.updateUser({ data: metaUpdates });
+        res.json({ user: data });
+    } catch (err) { next(err); }
+});
+
 /**
  * GET /api/v1/auth/terms
  * Retrieve current terms metadata and statutory framework
