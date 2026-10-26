@@ -1685,19 +1685,24 @@ async function builder() {
             await saveUserDocument(record);
             priorDocument = record;
 
-            const url = URL.createObjectURL(docxBlob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = `${t.title.replaceAll(' ', '_')}_LawCompass.docx`;
-            document.body.appendChild(a); a.click(); document.body.removeChild(a);
-            setTimeout(() => URL.revokeObjectURL(url), 1000);
-
-            // Show lock banner if not locked yet
-            if (!isLocked) {
-                $('#lock-banner').style.display = 'block';
-            }
-
-            toast('Your document was downloaded and saved to Document History.');
+            // Every generated file must pass through password entry and server encryption.
+            // Keep the editable source in local history; only the protected response is downloaded.
+            openLockAndDownloadModal({
+                docxBlob,
+                name: t.title,
+                type,
+                answers,
+                customClauses,
+                onSuccess: async (result) => {
+                    record.isLocked = true;
+                    record.lockedArtifactFormat = result.format;
+                    record.lockedArtifactName = result.filename;
+                    await saveUserDocument(record);
+                    priorDocument = record;
+                    await applyLockState(true);
+                }
+            });
+            toast('Your document is saved. Enter a password to download the protected copy.');
         } catch (err) {
             toast(err.message?.includes('storage') ? 'Your document could not be saved. Check available browser storage and try again.' : 'We could not create the Word document. Please try again.');
         }
@@ -2742,9 +2747,20 @@ function historyPage() {
                 if (!doc) return toast('We could not find that saved document.');
                 if (button.dataset.editDoc) return location.href = `builder.html?type=${encodeURIComponent(doc.type)}&edit=${encodeURIComponent(doc.id)}`;
                 if (button.dataset.downloadDoc || button.dataset.openDoc) {
-                    const url = URL.createObjectURL(doc.file); const a = document.createElement('a');
-                    a.href = url; a.download = `${doc.name.replaceAll(' ', '_')}_LawCompass.docx`; a.click();
-                    setTimeout(() => URL.revokeObjectURL(url), 1000);
+                    openLockAndDownloadModal({
+                        docxBlob: doc.file,
+                        name: doc.name,
+                        type: doc.type,
+                        answers: doc.answers,
+                        customClauses: doc.customClauses,
+                        onSuccess: async (result) => {
+                            doc.isLocked = true;
+                            doc.lockedArtifactFormat = result.format;
+                            doc.lockedArtifactName = result.filename;
+                            await saveUserDocument(doc);
+                            historyPage();
+                        }
+                    });
                 }
             } catch (_) { toast('We could not open that document. Please try again.'); }
         };

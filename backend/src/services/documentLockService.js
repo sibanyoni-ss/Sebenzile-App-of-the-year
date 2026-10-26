@@ -397,6 +397,9 @@ async function encryptPdf(buffer, password) {
         if (!encBuffer.slice(0, 8).toString('utf8').startsWith('%PDF-')) {
             throw new Error('Verification failed: Encrypted artifact is not a valid PDF.');
         }
+        if (!isPdfEncrypted(encBuffer)) {
+            throw new Error('Verification failed: Encrypted artifact does not contain a PDF encryption dictionary.');
+        }
         return encBuffer;
     } catch (e) {
         if (e.code) throw e;

@@ -25,6 +25,7 @@ async function runFrontendChecks() {
 
     const appJsPath = path.resolve(__dirname, '../../app.js');
     const appJs = fs.readFileSync(appJsPath, 'utf8');
+    const documentsRoute = fs.readFileSync(path.resolve(__dirname, '../src/routes/documents.routes.js'), 'utf8');
 
     let passed = 0;
     let failed = 0;
@@ -117,6 +118,21 @@ async function runFrontendChecks() {
         assert.ok(!appJs.includes('Consultation request dispatched to ${firmName}. A partner will contact you shortly.'), 'Must NOT claim consultation request was dispatched');
         assert.ok(appJs.includes('PREVIEW') || appJs.includes('Demonstration Preview'), 'Must label consultation as demo preview or direct contact');
         assert.ok(appJs.includes('lpcVerificationReferenceUrl') || appJs.includes('lpc.org.za'), 'Must link to LPC roll for verification');
+    });
+
+    test('Builder and history downloads both open the password encryption flow', () => {
+        const builderHandler = appJs.slice(appJs.indexOf('// Form submit -> generate authentic DOCX'), appJs.indexOf('// ------------------------------------------------------------------------------\n// 7.'));
+        const historyHandler = appJs.slice(appJs.indexOf('function historyPage()'), appJs.indexOf('function dictionary()'));
+        assert.ok(builderHandler.includes('openLockAndDownloadModal({'), 'Builder submit must use the password-protected download modal');
+        assert.ok(historyHandler.includes('openLockAndDownloadModal({'), 'History download must use the password-protected download modal');
+        assert.ok(!appJs.includes('a.download = `${t.title.replaceAll'), 'Builder must not create an original DOCX download');
+        assert.ok(!appJs.includes('a.download = `${doc.name.replaceAll'), 'History must not create an original DOCX download');
+    });
+
+    test('Encryption endpoint verifies the artifact before it is returned', () => {
+        assert.ok(documentsRoute.includes('encryptedBuffer = await encryptDocx(inputBuffer, password)'), 'DOCX endpoint must call verified encryption');
+        assert.ok(documentsRoute.includes('encryptedBuffer = await encryptPdf(pdfBytesBuffer, password)'), 'PDF endpoint must call verified encryption');
+        assert.ok(documentsRoute.includes('fileBase64: encryptedBuffer.toString(\'base64\')'), 'Endpoint response must contain only the encrypted buffer');
     });
 
     console.log('\n======================================================');
