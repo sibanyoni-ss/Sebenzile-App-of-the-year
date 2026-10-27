@@ -431,12 +431,12 @@ function shell(title, bodyContent) {
                 <button id="sidebar-toggle" aria-label="Collapse navigation" aria-controls="sidebar" aria-expanded="true">‹</button>
             </div>
             <p class="side-label">WORKSPACE</p>
+            <div class="side-signout">
+                <button id="signout" title="Sign out" aria-label="Sign out">↪ <span>Sign out</span></button>
+            </div>
             <nav>
                 ${nav.map(x => `<a class="${x[0] === active ? 'active' : ''}" href="${x[0]}" title="${x[2]}">${x[1]} <span>${x[2]}</span></a>`).join('')}
             </nav>
-            <div class="side-bottom">
-                <button id="signout" title="Sign out">↪ <span>Sign out</span></button>
-            </div>
         </aside>
         <main>
             <header>
