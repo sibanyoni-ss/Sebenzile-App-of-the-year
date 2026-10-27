@@ -1959,12 +1959,12 @@ body.auth-page {
     .profile-form .full, .profile-form .form-note, .profile-form > button { grid-column: auto; }
 }
 
-/* Keep the persistent account action reachable when a workspace sidebar is
-   shorter than its navigation. Only the navigation list scrolls; Sign out
-   stays anchored at the bottom of the sidebar. */
+/* Keep Sign out visible without adding a scrollbar to the sidebar navigation. */
 body:not(.marketing):not(.auth-page)>aside{overflow:hidden}
-body:not(.marketing):not(.auth-page)>aside>nav{flex:1 1 auto;min-height:0;overflow-y:auto;padding-bottom:10px}
-body:not(.marketing):not(.auth-page)>aside>.side-bottom{flex:0 0 auto;margin-top:0}
+body:not(.marketing):not(.auth-page)>aside>nav{overflow:hidden}
+body:not(.marketing):not(.auth-page)>aside>.side-bottom{position:absolute;left:18px;right:18px;bottom:30px;margin:0}
+body.sidebar-collapsed>.side-bottom{left:10px;right:10px}
+@media (max-width:850px){body:not(.marketing):not(.auth-page)>aside>.side-bottom{left:18px;right:18px;bottom:26px}body.sidebar-collapsed>.side-bottom{left:18px;right:18px}}
 #signout{width:100%;color:#e7ad56}
 #signout:hover,#signout:focus-visible{background:#213451;color:#fff}
 body.sidebar-collapsed #signout{position:relative}
