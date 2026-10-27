@@ -1959,14 +1959,18 @@ body.auth-page {
     .profile-form .full, .profile-form .form-note, .profile-form > button { grid-column: auto; }
 }
 
-/* Keep Sign out visible without adding a scrollbar to the sidebar navigation. */
+/* Keep every navigation item, including Sign out, in one scrollable sidebar list. */
 body:not(.marketing):not(.auth-page)>aside{overflow:hidden}
-body:not(.marketing):not(.auth-page)>aside>nav{overflow:hidden}
-body:not(.marketing):not(.auth-page)>aside>.side-bottom{position:absolute;left:18px;right:18px;bottom:30px;margin:0}
-body.sidebar-collapsed>.side-bottom{left:10px;right:10px}
-@media (max-width:850px){body:not(.marketing):not(.auth-page)>aside>.side-bottom{left:18px;right:18px;bottom:26px}body.sidebar-collapsed>.side-bottom{left:18px;right:18px}}
+body:not(.marketing):not(.auth-page)>aside>nav{flex:1 1 auto;min-height:0;overflow-y:auto;scrollbar-width:none;-ms-overflow-style:none;padding-bottom:10px}
+body:not(.marketing):not(.auth-page)>aside>nav::-webkit-scrollbar{display:none}
 #signout{width:100%;color:#e7ad56}
 #signout:hover,#signout:focus-visible{background:#213451;color:#fff}
 body.sidebar-collapsed #signout{position:relative}
+body.sidebar-collapsed aside nav #signout{text-align:center;padding-inline:8px;font-size:19px}
+body.sidebar-collapsed aside nav #signout span{display:none}
+@media (max-width:850px){
+  body.sidebar-collapsed aside nav #signout{text-align:left;padding-inline:14px;font-size:14px}
+  body.sidebar-collapsed aside nav #signout span{display:inline}
+}
 body.sidebar-collapsed #signout:hover::after,body.sidebar-collapsed #signout:focus-visible::after{content:attr(title);position:absolute;left:64px;bottom:0;background:#13213a;color:#fff;padding:8px 10px;border-radius:5px;white-space:nowrap;font:12px system-ui;z-index:5}
 

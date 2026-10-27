@@ -433,10 +433,8 @@ function shell(title, bodyContent) {
             <p class="side-label">WORKSPACE</p>
             <nav>
                 ${nav.map(x => `<a class="${x[0] === active ? 'active' : ''}" href="${x[0]}" title="${x[2]}">${x[1]} <span>${x[2]}</span></a>`).join('')}
+                <button id="signout" title="Sign out" aria-label="Sign out">↪ <span>Sign out</span></button>
             </nav>
-            <div class="side-bottom">
-                <button id="signout" title="Sign out">↪ <span>Sign out</span></button>
-            </div>
         </aside>
         <main>
             <header>
