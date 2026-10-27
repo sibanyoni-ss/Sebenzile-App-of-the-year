@@ -1959,3 +1959,14 @@ body.auth-page {
     .profile-form .full, .profile-form .form-note, .profile-form > button { grid-column: auto; }
 }
 
+/* Keep the persistent account action reachable when a workspace sidebar is
+   shorter than its navigation. Only the navigation list scrolls; Sign out
+   stays anchored at the bottom of the sidebar. */
+body:not(.marketing):not(.auth-page)>aside{overflow:hidden}
+body:not(.marketing):not(.auth-page)>aside>nav{flex:1 1 auto;min-height:0;overflow-y:auto;padding-bottom:10px}
+body:not(.marketing):not(.auth-page)>aside>.side-bottom{flex:0 0 auto;margin-top:0}
+#signout{width:100%;color:#e7ad56}
+#signout:hover,#signout:focus-visible{background:#213451;color:#fff}
+body.sidebar-collapsed #signout{position:relative}
+body.sidebar-collapsed #signout:hover::after,body.sidebar-collapsed #signout:focus-visible::after{content:attr(title);position:absolute;left:64px;bottom:0;background:#13213a;color:#fff;padding:8px 10px;border-radius:5px;white-space:nowrap;font:12px system-ui;z-index:5}
+
